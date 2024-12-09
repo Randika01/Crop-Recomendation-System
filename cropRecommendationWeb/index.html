@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crop Recommendation Platform</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Lavishly+Yours&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .logo h1 {
+      font-family: 'Lavishly Yours', cursive;
+    }
+
+    /* About Section Styles */
+    .about {
+      background-color: #f9f9f9;
+      padding: 4rem 0;
+      text-align: center;
+    }
+
+    .about h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .about p {
+      font-size: 1.2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .about img {
+      width: 100%;
+      max-width: 600px;
+      margin-top: 2rem;
+      border-radius: 8px;
+    }
+
+    /* Blog Section Styles */
+    .blog {
+      padding: 4rem 0;
+      background-color: #e9ecef;
+    }
+
+    .blog h2 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .blog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .blog-card {
+      background-color: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .blog-card img {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .blog-card h3 {
+      margin-top: 1rem;
+      font-size: 1.5rem;
+      color: #2c6e49;
+    }
+
+    .blog-card p {
+      font-size: 1rem;
+      margin-top: 1rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header Section -->
+  <header class="header">
+    <div class="container">
+      <div class="logo">
+        <img src="HomeImages/logoo.png" alt="CropSelect Logo" height="50">
+        <h1>CropSelect</h1>
+      </div>
+      <nav class="nav">
+        <a href="#">Home</a>
+        <a href="#">Features</a>
+        <a href="#">How It Works</a>
+        <a href="#">Contact Us</a>
+        <a href="#" class="btn">Login / Signup</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>Revolutionizing Sri Lankan Agriculture</h1>
+      <p>Empower farmers with data-driven crop recommendations to maximize yield and sustainability.</p>
+      <div class="cta-buttons">
+        <a href="#" class="btn">Get Started</a>
+        <a href="#features" class="btn secondary">Learn More</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- About the Platform Section -->
+  <section class="about">
+    <h2>About the Platform</h2>
+    <p>
+      CropSelect is a cutting-edge platform that leverages data-driven insights to help farmers choose the right crops for their land, 
+      maximizing yield and promoting sustainable farming practices. Our platform provides tailored recommendations based on climate, 
+      soil conditions, and market trends, helping farmers make informed decisions.
+    </p>
+    <img src="HomeImages/about-platform-image.jpg" alt="About CropSelect">
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <div class="container">
+      <h2>Why Use Our Platform?</h2>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>Localized Crop Recommendations</h3>
+          <p>Tailored to Sri Lankan climatic zones like Wet Zone, Dry Zone, and Intermediate Zone.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Seasonal Guidance</h3>
+          <p>Recommendations optimized for Maha and Yala cropping seasons.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Soil Suitability Analysis</h3>
+          <p>Analyze soil types like red-yellow podzolic and regosols for ideal crops.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Market Trends</h3>
+          <p>Crop suggestions aligned with local market demands and export opportunities.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Blog Section -->
+  <section class="blog">
+    <div class="container">
+      <h2>Latest Blogs</h2>
+      <div class="blog-grid">
+        <div class="blog-card">
+          <img src="HomeImages/blog-image-1.jpg" alt="Blog 1">
+          <h3>How to Improve Crop Yield Using Data</h3>
+          <p>Learn how data analytics is transforming the agricultural landscape and helping farmers achieve higher yields and profitability.</p>
+        </div>
+        <div class="blog-card">
+          <img src="HomeImages/blog-image-2.jpg" alt="Blog 2">
+          <h3>Understanding Soil Types for Better Crop Selection</h3>
+          <p>Explore the different soil types in Sri Lanka and how understanding them can help farmers select the right crops for better growth.</p>
+        </div>
+        <div class="blog-card">
+          <img src="HomeImages/blog-image-3.jpg" alt="Blog 3">
+          <h3>The Importance of Seasonal Crop Rotation</h3>
+          <p>Find out why rotating crops based on seasons is essential for sustainable agriculture and soil health.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer Section -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2024 CropSelect | Designed for Sri Lankan Agriculture</p>
+      <div class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Contact Us</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
