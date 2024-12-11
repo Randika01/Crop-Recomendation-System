@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Crop Recommendation System</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ"
+      crossorigin="anonymous"
+    />
+    <style>
+      body {
+        background: linear-gradient(to bottom, #f5f5f5, #e0f7fa);
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 900px;
+        background-color: #ffffff;
+        margin: 30px auto;
+        border-radius: 10px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+      }
+
+      h1 {
+        text-align: center;
+        color: #00695c;
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        font-weight: bold;
+        color: #00796b;
+      }
+
+      .btn-primary {
+        background-color: #00796b;
+        border: none;
+      }
+
+      .btn-primary:hover {
+        background-color: #004d40;
+      }
+
+      .card img {
+        max-height: 250px;
+        object-fit: cover;
+        border-radius: 10px 10px 0 0;
+      }
+
+      .card {
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.2s;
+      }
+
+      .card:hover {
+        transform: scale(1.03);
+      }
+
+      .card-title {
+        font-size: 1rem;
+        color: #004d40;
+        font-weight: bold;
+      }
+
+      .row img {
+        margin-top: 4px;
+        width: 100%;
+        border-radius: 10px;
+      }
+
+      .form-section {
+        margin-bottom: 20px;
+      }
+
+      .carousel-inner .carousel-item img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🌱 Crop Recommendation System</h1>
+      <form id="recommendationForm">
+        <!-- First Row: District and Month -->
+        <div class="row form-section">
+          <div class="col-md-4">
+            <label for="District" class="form-label">District</label>
+            <select id="District" name="District" class="form-select" required>
+              <option value="">Select District</option>
+              <option value="Ampara">Ampara</option>
+              <option value="Anuradhapura">Anuradhapura</option>
+              <option value="Badulla">Badulla</option>
+              <option value="Batticaloa">Batticaloa</option>
+              <option value="Colombo">Colombo</option>
+              <option value="Galle">Galle</option>
+              <option value="Gampaha">Gampaha</option>
+              <option value="Hambantota">Hambantota</option>
+              <option value="Jaffna">Jaffna</option>
+              <option value="Kaluthara">Kaluthara</option>
+              <option value="Kandy">Kandy</option>
+              <option value="Kegalle">Kegalle</option>
+              <option value="Kilinochchi">Kilinochchi</option>
+              <option value="Kurunegala">Kurunegala</option>
+              <option value="Mannar">Mannar</option>
+              <option value="Matale">Matale</option>
+              <option value="Matara">Matara</option>
+              <option value="Monaragala">Monaragala</option>
+              <option value="Mullativu">Mullativu</option>
+              <option value="Nuwara Eliya">Nuwara Eliya</option>
+              <option value="Polonnaruwa">Polonnaruwa</option>
+              <option value="Puttalam">Puttalam</option>
+              <option value="Ratnapura">Ratnapura</option>
+              <option value="Trincomalee">Trincomalee</option>
+              <option value="Vavuniya">Vavuniya</option>
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label for="Month" class="form-label">Month</label>
+            <select id="Month" name="Month" class="form-select" required>
+              <option value="">Select Month</option>
+              <option value="January">January</option>
+              <option value="February">February</option>
+              <option value="March">March</option>
+              <option value="April">April</option>
+              <option value="May">May</option>
+              <option value="June">June</option>
+              <option value="July">July</option>
+              <option value="August">August</option>
+              <option value="September">September</option>
+              <option value="October">October</option>
+              <option value="November">November</option>
+              <option value="December">December</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="Nitrogen" class="form-label">Nitrogen</label>
+            <input
+              type="number"
+              id="Nitrogen"
+              name="Nitrogen"
+              placeholder="Enter Nitrogen"
+              class="form-control"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Second Row: Nitrogen, Phosphorus, Potassium -->
+        <div class="row form-section">
+          
+          <div class="col-md-4">
+            <label for="Phosphorus" class="form-label">Phosphorus</label>
+            <input
+              type="number"
+              id="Phosphorus"
+              name="Phosphorus"
+              placeholder="Enter Phosphorus"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="col-md-4">
+            <label for="Potassium" class="form-label">Potassium</label>
+            <input
+              type="number"
+              id="Potassium"
+              name="Potassium"
+              placeholder="Enter Potassium"
+              class="form-control"
+              required
+            />
+          </div>
+      
+          <div class="col-md-4">
+            <label for="Temperature" class="form-label">Temperature (°C)</label>
+            <input
+              type="number"
+              step="0.01"
+              id="Temperature"
+              name="Temperature"
+              placeholder="Enter Temperature"
+              class="form-control"
+              required
+            />
+          </div>
+          </div>
+          <div class="row form-section">
+          <div class="col-md-4">
+            <label for="Humidity" class="form-label">Humidity (%)</label>
+            <input
+              type="number"
+              step="0.01"
+              id="Humidity"
+              name="Humidity"
+              placeholder="Enter Humidity"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="col-md-4">
+            <label for="pH" class="form-label">pH</label>
+            <input
+              type="number"
+              step="0.01"
+              id="pH"
+              name="pH"
+              placeholder="Enter pH value"
+              class="form-control"
+              required
+            />
+          </div>
+       
+          <div class="col-md-4">
+            <label for="Rainfall" class="form-label">Rainfall (mm)</label>
+            <input
+              type="number"
+              step="0.01"
+              id="Rainfall"
+              name="Rainfall"
+              placeholder="Enter Rainfall"
+              class="form-control"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="row form-section">
+          <div class="col-md-12 text-center">
+            <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#resultModal">
+              Get Recommendation
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="resultModalLabel">Recommended Crop</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+              recommended crop will appear here.
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <div id="harvestCarousel" class="carousel slide" data-bs-ride="carousel">
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <img src="field.jpg" class="d-block w-100" alt="Field Image" />
+            </div>
+            <div class="carousel-item">
+              <img src="harvest.jpg" class="d-block w-100" alt="Harvest Image" />
+            </div>
+            <div class="carousel-item">
+              <img src="pic1.jpg" class="d-block w-100" alt="Crop Image" />
+            </div>
+          </div>
+          <button
+            class="carousel-control-prev"
+            type="button"
+            data-bs-target="#harvestCarousel"
+            data-bs-slide="prev"
+          >
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button
+            class="carousel-control-next"
+            type="button"
+            data-bs-target="#harvestCarousel"
+            data-bs-slide="next"
+          >
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
