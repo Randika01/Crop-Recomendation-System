@@ -7,7 +7,7 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background-image: url('images/HomeImages/login.jpg'); /* Set the background image */
+    background-image: url('../images/HomeImages/login.jpg'); /* Set the background image */
     background-size: cover; /* Ensures the image covers the screen */
     background-position: center; /* Centers the image */
     background-attachment: fixed; /* Keeps background fixed while scrolling */
@@ -24,7 +24,7 @@ body {
 
 .signup-box, 
 .login-box {
-    background-color: rgba(255, 255, 255, 0.9); /* Slight transparency to see the background */
+    background-color: rgba(216, 243, 216, 0.9); /* Slight transparency to see the background */
     padding: 40px 30px;
     border-radius: 15px;
     width: 100%;
