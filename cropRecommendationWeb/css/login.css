@@ -7,7 +7,7 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background-image: url('login.jpg'); /* Set the background image */
+    background-image: url('images/HomeImages/login.jpg'); /* Set the background image */
     background-size: cover; /* Ensures the image covers the screen */
     background-position: center; /* Centers the image */
     background-attachment: fixed; /* Keeps background fixed while scrolling */
