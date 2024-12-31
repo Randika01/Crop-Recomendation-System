@@ -1,10 +1,35 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template,redirect, url_for, flash, session
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 import pandas as pd
 import numpy as np
 from tensorflow.keras.models import load_model # type: ignore
 import joblib
 
 app = Flask(__name__, template_folder='.')
+
+# Set up the database URI and secret key for sessions
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = '3bb08d1b6b92e84572425b0d7d06acb2448cbb5c6ca54412'
+
+# Initialize the database
+db = SQLAlchemy(app)
+
+# Define the User model
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(15), nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    farmer_type = db.Column(db.String(50), nullable=False)
+    province = db.Column(db.String(50), nullable=False)
+    farm_size = db.Column(db.Float, nullable=False)
+
+# Create the database tables
+with app.app_context():
+    db.create_all()
 
 # Load models and scalers
 storage_model = load_model('single_lstm_storage_predictor.h5')  # LSTM model for tank storage prediction
@@ -21,6 +46,67 @@ tank_data['Month'] = pd.to_datetime(tank_data['Month'], format='%B').dt.month  #
 
 crop_data = pd.read_csv("Crop_recommendation.csv")              # Crop recommendation dataset
 
+# User Routes
+@app.route("/signup", methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        full_name = request.form['full_name']
+        phone = request.form['phone']
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        farmer_type = request.form['farmer_type']
+        province = request.form['province']
+        farm_size = request.form['farm_size']
+
+        # Password hashing
+        if password != confirm_password:
+            flash('Passwords do not match!', 'danger')
+            return redirect(url_for('signup'))
+        
+        # Use the correct hashing method
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+
+        # Create a new user record
+        new_user = User(full_name=full_name, phone=phone, email=email, password=hashed_password,
+                        farmer_type=farmer_type, province=province, farm_size=farm_size)
+
+        try:
+            # Add to the database and commit
+            db.session.add(new_user)
+            db.session.commit()
+            flash('Account created successfully!', 'success')
+            return redirect(url_for('login'))
+        except:
+            flash('Error in account creation. Try again!', 'danger')
+            return redirect(url_for('signup'))
+    return render_template("signup.html")
+
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        
+        user = User.query.filter_by(email=email).first()
+
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id  # Store the user id in the session
+            session['username'] = user.full_name  # Store the user's name in session
+            flash('Login successful!', 'success')
+            return redirect(url_for('index'))  # Redirect to the main page
+        else:
+            flash('Invalid credentials. Please try again.', 'danger')
+            return redirect(url_for('crop_prediction'))
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.pop('user_id', None)  # Remove user_id from session
+    session.pop('username', None)  # Remove username from session
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('index'))
+    
 @app.route("/")
 def index():
     return render_template("crop_prediction.html")
