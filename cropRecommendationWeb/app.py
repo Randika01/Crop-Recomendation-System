@@ -184,10 +184,9 @@ def predict_crop():
     crop_index = np.argmax(crop_prediction)
     crop_name = crop_encoder.inverse_transform([crop_index])[0]
 
+    
     return render_template(
         "crop_prediction.html",
-        crop_result=f"The recommended crop is: {crop_name}"
+        
     )
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    
