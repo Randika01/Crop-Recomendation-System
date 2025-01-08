@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sri Lanka Map with District Colors</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        const map = L.map('map').setView([7.8731, 80.7718], 7); // Centered on Sri Lanka
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // District Colors
+        const districtColors = {
+            "Vavuniyāva": "#FF5733",
+            "Kolomba": "#33FF57",
+            "Mulativ": "#3357FF",
+            "Mahanuvara": "#FFD700",
+            // Add more districts with colors
+        };
+
+        // Style function to apply district colors
+        function styleFunction(feature) {
+            return {
+                fillColor: districtColors[feature.properties.name] || "#CCCCCC", // Default color
+                weight: 2,
+                opacity: 1,
+                color: "black", // Border color
+                fillOpacity: 0.7
+            };
+        }
+
+        // Function to add popups and interactivity
+        function onEachFeature(feature, layer) {
+            layer.bindPopup(`<b>District:</b> ${feature.properties.name}`);
+        }
+
+        // Load GeoJSON data
+        fetch('lk.json')
+            .then(response => response.json())
+            .then(data => {
+                L.geoJson(data, {
+                    style: styleFunction,
+                    onEachFeature: onEachFeature
+                }).addTo(map);
+            })
+            .catch(error => console.error('Error loading GeoJSON:', error));
+    </script>
+</body>
+</html>

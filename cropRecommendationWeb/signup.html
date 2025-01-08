@@ -1,40 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Crop Recommendation</title>
+    <title>Sign Up - Agriculture Instructor</title>
     <link rel="stylesheet" href="css/login.css">
 </head>
+
 <body>
 
     <div class="container">
         <div class="signup-box">
-            <h1 class="title">Create Your Profile</h1>
-            <p class="subtitle">"Grow Smarter with Your Personalized Farmer Profile!</p>
+            <!-- Updated Title -->
+            <h1 class="title">Create Instructor Profile</h1>
+            <p class="subtitle">"Empower Farmers with Your Expertise!"</p>
 
+            <!-- Form Start -->
             <form action="/register" method="POST" class="signup-form">
 
+                <!-- Full Name -->
                 <input type="text" name="full_name" placeholder="Full Name" required>
+
+                <!-- Phone Number -->
                 <input type="tel" name="phone" placeholder="Phone Number" required>
-                <input type="email" name="email" placeholder="Email (Optional)">
+
+                <!-- Email -->
+                <input type="email" name="email" placeholder="Email" required> <!-- Made Email Required -->
+
+                <!-- Password -->
                 <input type="password" name="password" placeholder="Password" required>
                 <input type="password" name="confirm_password" placeholder="Confirm Password" required>
 
-                <label for="farmer_type">Type of Farmer</label>
-                <select name="farmer_type" required>
-                    <option value="" disabled selected>Select Farmer Type</option>
-                    <option value="small_scale">Small-Scale Farmer</option>
-                    <option value="commercial">Commercial Farmer</option>
-                    <option value="home_gardener">Home Gardener</option>
-                </select>
+                <!-- Job Title (New Field) -->
+                <input type="text" name="job_title" placeholder="Job Title" required> <!-- Added Job Title -->
 
+                <!-- Office Location (New Field) -->
+                <input type="text" name="office_location" placeholder="Office Location" required> <!-- Added Office Location -->
+
+                <!-- Province -->
                 <label for="province">Province</label>
                 <select name="province" required>
                     <option value="" disabled selected>Select Your Province</option>
-                    <option value="" disabled selected>Select Your Province</option>
                     <option value="Eastern">Eastern</option>
-                    <option value="Northern">Northernn</option>
+                    <option value="Northern">Northern</option>
                     <option value="Western">Western</option>
                     <option value="Southern">Southern</option>
                     <option value="North Western">North Western</option>
@@ -44,16 +53,26 @@
                     <option value="Sabaragamuwa">Sabaragamuwa</option>
                 </select>
 
-                <input type="number" name="farm_size" placeholder="Farm Size (in acres)" required>
+                <!-- Years of Experience (New Field) -->
+                <input type="number" name="experience_years" placeholder="Years of Experience" required> <!-- Added Experience -->
 
-                <input type="checkbox" name="terms" required> 
+                <!-- Specialization Area (New Field) -->
+                <input type="text" name="specialization" placeholder="Specialization (e.g., Soil Management)" required> <!-- Added Specialization -->
+
+                <!-- Agreement Checkbox -->
+                <input type="checkbox" name="terms" required>
                 I agree to the <a href="#">Terms & Conditions</a> and <a href="#">Privacy Policy</a>
 
+                <!-- Submit Button -->
                 <button type="submit" class="btn signup-btn">Sign Up</button>
+
+                <!-- Redirect to Login -->
                 <p class="signup-redirect">Already have an account? <a href="login.html">Login here</a></p>
             </form>
+            <!-- Form End -->
         </div>
     </div>
 
 </body>
+
 </html>
