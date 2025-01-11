@@ -184,10 +184,12 @@ def predict_storage():
 @app.route("/predict_crop", methods=['POST'])
 def predict_crop():
     # Step 2: Predict crop based on soil nutrients and weather data
+    district = request.form.get('district')  # Retrieve district
+    month = request.form.get('month')        # Retrieve month
     N = float(request.form['Nitrogen'])
     P = float(request.form['Phosporus'])
     K = float(request.form['Potassium'])
-    temp = float(request.form['Temperature'])
+    temperature = float(request.form['Temperature'])
     humidity = float(request.form['Humidity'])
     ph = float(request.form['pH'])
     rainfall = float(request.form['Rainfall'])  # User-entered rainfall
@@ -200,7 +202,7 @@ def predict_crop():
         rainfall = crop_data['Rainfall'].mean()  # Replace rainfall with the mean value
 
     # Prepare features for crop recommendation
-    features = np.array([[N, P, K, temp, humidity, ph, rainfall]])
+    features = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
     features_scaled = crop_scaler.transform(features)
 
     # Predict crop
@@ -208,9 +210,112 @@ def predict_crop():
     crop_index = np.argmax(crop_prediction)
     crop_name = crop_encoder.inverse_transform([crop_index])[0]
 
+    # Save the recommendation to the database
+    if 'user_id' in session:
+        user_id = session['user_id']
+        recommendation = CropRecommendation(
+            user_id=user_id,
+            nitrogen=N,
+            phosphorus=P,
+            potassium=K,
+            temperature=temperature,
+            humidity=humidity,
+            pH=ph,
+            rainfall=rainfall,
+            recommended_crop=crop_name,
+            district=district,
+            month=month
+        )
+        db.session.add(recommendation)
+        db.session.commit()
     
     return render_template(
         "crop_prediction.html",
         
     )
     
+@app.route("/recommendations")
+def recommendations():
+    if 'user_id' not in session:
+        flash('Please log in to view your recommendations.', 'info')
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    recommendations = CropRecommendation.query.filter_by(user_id=user_id).all()
+    
+    return render_template("recommendations.html", recommendations=recommendations)
+
+@app.route("/district_crops",  methods=['GET'])
+def district_crops():
+    try:
+        crops_by_district = db.session.query(
+            CropRecommendation.district,
+            CropRecommendation.month,
+            db.func.group_concat(CropRecommendation.recommended_crop).label("predicted_crops")
+        ).group_by(CropRecommendation.district, CropRecommendation.month).all()
+
+        print("Crops by District (Debugging):", crops_by_district)
+
+        geojson_data = {
+            "type": "FeatureCollection",
+            "features": []
+        }
+
+        district_centers = {
+        "Ampara": [81.6726, 7.2915],
+        "Anuradhapura": [80.4036, 8.3114],
+        "Badulla": [81.0550, 6.9898],
+        "Batticalo": [81.6822, 7.7144],
+        "Colombo": [79.8612, 6.9271],
+        "Galle": [80.2170, 6.0535],
+        "Gampaha": [79.9981, 7.0914],
+        "Hambantota": [81.1240, 6.1241],
+        "Jaffna": [80.0144, 9.6615],
+        "Kalutara": [79.9594, 6.5854],
+        "Kandy": [80.6350, 7.2906],
+        "Kegalle": [80.3478, 7.2522],
+        "Kilinochchi": [80.4181, 9.3803],
+        "Kurunegala": [80.3728, 7.4865],
+        "Mannar": [79.9045, 8.9761],
+        "Matale": [80.7323, 7.4679],
+        "Matara": [80.5353, 5.9488],
+        "Monaragala": [81.3483, 6.8712],
+        "Mullativu": [80.8298, 9.2800],
+        "Nuwara Eliya": [80.7812, 6.9497],
+        "Polonnaruwa": [81.0011, 7.9409],
+        "Puttalam": [79.8398, 8.0362],
+        "Ratnapura": [80.4012, 6.6828],
+        "Trincomalee": [81.2336, 8.5874],
+        "Vavuniya": [80.4928, 8.7540]
+        }
+
+
+        for district, month, crops in crops_by_district:
+            crops_list = crops.split(",") if crops else []
+            coordinates = district_centers.get(district, [80.7718, 7.8731])  # Fallback coordinates
+            feature = {
+                "type": "Feature",
+                "properties": {
+                    "name": district,
+                    "month": month,
+                    "predicted_crops": crops_list
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": coordinates
+                }
+            }
+            geojson_data["features"].append(feature)
+
+        return geojson_data
+
+    except Exception as e:
+            app.logger.error(f"Error in /district_crops: {e}")
+            return {"error": "Failed to load crops data"}, 500
+
+
+
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
