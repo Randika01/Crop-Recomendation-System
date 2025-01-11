@@ -5,8 +5,11 @@ import pandas as pd
 import numpy as np
 from tensorflow.keras.models import load_model # type: ignore
 import joblib
+from flask_migrate import Migrate
+from flask_cors import CORS
 
 app = Flask(__name__, template_folder='.')
+CORS(app) 
 
 # Set up the database URI and secret key for sessions
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -15,6 +18,7 @@ app.secret_key = '3bb08d1b6b92e84572425b0d7d06acb2448cbb5c6ca54412'
 
 # Initialize the database
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Define the User model
 class User(db.Model):
@@ -26,6 +30,21 @@ class User(db.Model):
     farmer_type = db.Column(db.String(50), nullable=False)
     province = db.Column(db.String(50), nullable=False)
     farm_size = db.Column(db.Float, nullable=False)
+
+# Define the CropRecommendation model
+class CropRecommendation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Foreign key to the User table
+    district = db.Column(db.String(100), nullable=True)  # Update or add this line
+    month = db.Column(db.String(20), nullable=True)  # Add this line
+    nitrogen = db.Column(db.Float, nullable=False)
+    phosphorus = db.Column(db.Float, nullable=False)
+    potassium = db.Column(db.Float, nullable=False)
+    temperature = db.Column(db.Float, nullable=False)
+    humidity = db.Column(db.Float, nullable=False)
+    pH = db.Column(db.Float, nullable=False)
+    rainfall = db.Column(db.Float, nullable=False)
+    recommended_crop = db.Column(db.String(100), nullable=False)
 
 # Create the database tables
 with app.app_context():
