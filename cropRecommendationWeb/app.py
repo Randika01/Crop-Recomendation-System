@@ -128,13 +128,18 @@ def logout():
     
 @app.route("/")
 def index():
-    return render_template("crop_prediction.html")
+    return render_template("index.html", username=session.get('username'))
+
+@app.route('/crop_prediction')
+def crop_prediction():
+    # Your logic for rendering the crop prediction page
+    return render_template('crop_prediction.html')
 
 @app.route("/predict_storage", methods=['POST'])
 def predict_storage():
     # Step 1: Predict tank storage based on Area and Month
-    range_selected = request.form['Area']
-    month_name = request.form['Month']
+    range_selected = request.form['district']
+    month_name = request.form['month']
 
     # Map month names to numeric values
     month_mapping = {
@@ -150,9 +155,8 @@ def predict_storage():
 
     # One-hot encode the selected range
     range_encoded = range_encoder.transform([[range_selected]])
-    input_sequence = []
-    for storage in recent_storage:
-        input_sequence.append(np.concatenate((storage, range_encoded[0])))
+    input_sequence = [np.concatenate((storage, range_encoded[0])) for storage in recent_storage
+    ]
 
     input_sequence = np.array(input_sequence).reshape(1, 12, -1)
 
@@ -173,7 +177,8 @@ def predict_storage():
     return render_template(
         "crop_prediction.html",
         storage_statement=storage_statement,
-        predicted_storage=predicted_storage
+        predicted_storage=predicted_storage, district=range_selected,
+        month=month_name
     )
 
 @app.route("/predict_crop", methods=['POST'])
