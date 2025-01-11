@@ -72,13 +72,13 @@
         <div class="row mb-3">
           <div class="col-md-4">
             <label for="District" class="form-label">District</label>
-            <select id="District" name="District" class="form-select" required>
+            <select id="District" name="district" class="form-select" required>
               <option value="">Select District</option>
               <!-- District options -->
               <option value="Ampara">Ampara</option>
               <option value="Anuradhapura">Anuradhapura</option>
               <option value="Badulla">Badulla</option>
-              <option value="Batticaloa">Batticaloa</option>
+              <option value="Batticalo">Batticalo</option>
               <option value="Colombo">Colombo</option>
               <option value="Galle">Galle</option>
               <option value="Gampaha">Gampaha</option>
@@ -104,7 +104,7 @@
           </div>
           <div class="col-md-4">
             <label for="Month" class="form-label">Month</label>
-            <select id="Month" name="Month" class="form-select" required>
+            <select id="Month" name="month" class="form-select" required>
               <option value="">Select Month</option>
               <!-- Month options -->
               <option value="January">January</option>
@@ -121,6 +121,25 @@
               <option value="December">December</option>
             </select>
           </div>
+
+          <br>
+        <button type="submit" class="btn btn-primary btn-lg"
+        id="getRecommendation">
+        Predict Storage</button>
+    </form>
+          {% if storage_statement %}
+      <div class="output-container">
+        <h3>Storage Prediction Result:</h3>
+        <p>{{ storage_statement }}</p>
+      </div>
+      {% endif %}
+
+    <br>
+    <form id="recommendationForm" action="/predict_crop" method="POST">
+      <input type="hidden" name="district" value="{{ district }}">
+        <input type="hidden" name="month" value="{{ month }}">
+      <input type="hidden" name="Predicted_Storage" value="{{ predicted_storage }}">
+
           <div class="col-md-4">
             <label for="Nitrogen" class="form-label">Nitrogen</label>
             <input
@@ -218,6 +237,13 @@
         </div>
       </form>
 
+      {% if crop_result %}
+  <div class="output-container">
+    
+    <p>{{ crop_result }}</p>
+  </div>
+  {% endif %}
+
       <div class="mt-5">
         <div
           id="harvestCarousel"
@@ -226,7 +252,7 @@
         >
           <div class="carousel-inner">
             <div class="carousel-item active">
-              <img src="field.jpg" class="d-block w-100" alt="Field Image" />
+              <img src="https://c.wallhere.com/photos/7d/c9/1920x1080_px_field_landscape_path_sunset-704743.jpg!d" class="d-block w-100" class="d-block w-100" alt="Field Image" />
             </div>
             <div class="carousel-item">
               <img
@@ -236,7 +262,7 @@
               />
             </div>
             <div class="carousel-item">
-              <img src="pic1.jpg" class="d-block w-100" alt="Crop Image" />
+              <img src="https://wallpapercrafter.com/th8008/1959125-son-la-vietnam-plantation-tea-field-moc-chau.jpg" class="d-block w-100" alt="Crop Image" />
             </div>
           </div>
           <button
