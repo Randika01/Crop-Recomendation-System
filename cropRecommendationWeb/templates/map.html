@@ -9,6 +9,17 @@
         #map {
             height: 100vh;
         }
+        .legend {
+            background-color: white;
+            padding: 10px;
+            border: 1px solid black;
+            border-radius: 5px;
+            font-size: 14px;
+            line-height: 1.5em;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -25,13 +36,40 @@
         }).addTo(map);
 
         // District Colors
-        const districtColors = {
-            "Vavuniyāva": "#FF5733",
-            "Kolomba": "#33FF57",
-            "Mulativ": "#3357FF",
-            "Mahanuvara": "#FFD700",
+        // const districtColors = {
+        //     "Vavuniyāva": "#FF5733",
+        //     "Kolomba": "#33FF57",
+        //     "Mulativ": "#3357FF",
+        //     "Mahanuvara": "#FFD700",
             // Add more districts with colors
+        // };
+
+        // Crop Colors
+        const cropColors = {
+            "rice": "#FF0000",       // Red
+            "maize": "#008000",      // Green
+            "chickpea": "#FFFF00",   // Yellow
+            "kidneybeans": "#FFA500", // Orange
+            "pigeonpeas": "#0000FF",  // Blue
+            "mothbeans": "#800080",   // Purple
+            "mungbean": "#00FF00",    // Lime Green
+            "blackgram": "#000000",   // Black
+            "lentil": "#8B4513",      // Saddle Brown
+            "pomegranate": "#DC143C", // Crimson
+            "banana": "#FFFFE0",      // Light Yellow
+            "mango": "#FF8C00",       // Dark Orange
+            "grapes": "#800080",      // Purple
+            "watermelon": "#FF6347",  // Tomato
+            "muskmelon": "#FFD700",   // Gold
+            "apple": "#A52A2A",       // Brown
+            "orange": "#FFA500",      // Orange
+            "papaya": "#FFCC00",      // Yellow
+            "coconut": "#FFF5EE",     // Sea Shell
+            "cotton": "#001222",      // White
+            "jute": "#D2691E",        // Chocolate
+            "coffee": "#6F4F37",      // Coffee Brown
         };
+
 
         // Style function to apply district colors
         function styleFunction(feature) {
@@ -44,21 +82,118 @@
             };
         }
 
-        // Function to add popups and interactivity
-        function onEachFeature(feature, layer) {
-            layer.bindPopup(`<b>District:</b> ${feature.properties.name}`);
+        // Function to add crop dots to the map
+        function addCropDots(feature, crops) {
+            const bounds = L.geoJson(feature.geometry).getBounds();
+            const center = bounds.getCenter();
+
+            crops.forEach((crop, index) => {
+                // Create a grid-like pattern for placing multiple crops
+                const offsetLat = (Math.floor(index / 3) - 1) * 0.02; // Row offset
+                const offsetLng = (index % 3 - 1) * 0.02; // Column offset
+                
+                L.circleMarker([center.lat + offset, center.lng + offset], {
+                    radius: 8,
+                    fillColor: cropColors[crop.toLowerCase()] || "#FFFFFF",
+                    color: "black",
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).bindPopup(`<b>Crop:</b> ${crop}`).addTo(map);
+            });
         }
 
-        // Load GeoJSON data
-        fetch('lk.json')
-            .then(response => response.json())
-            .then(data => {
-                L.geoJson(data, {
-                    style: styleFunction,
-                    onEachFeature: onEachFeature
-                }).addTo(map);
-            })
-            .catch(error => console.error('Error loading GeoJSON:', error));
+       // Fetch GeoJSON and crop data
+       fetch('http://127.0.0.1:5000/district_crops')
+        .then(response => {
+            if (!response.ok) {
+                console.error('Failed to load district crops:', response.status, response.statusText);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(cropData => {
+            console.log("Crop Data:", cropData); // Debug to ensure data is fetched
+            loadDistricts(cropData); // Pass crop data to loadDistricts
+        })
+        .catch(error => {
+            console.error('Error loading district crops:', error);
+            loadDistricts(null); // Load districts without crops if error
+        });
+
+        // Function to load districts and crops
+function loadDistricts(cropData) {
+    fetch('lk.json')
+        .then(response => response.json())
+        .then(districtData => {
+            console.log("District Data:", districtData); // Debug districts
+            L.geoJson(districtData, {
+                style: styleFunction,
+                onEachFeature: function (feature, layer) {
+                    const districtName = feature.properties.name;
+                    console.log("District from GeoJSON:", districtName); // Debug district name from GeoJSON
+
+                     // Find all matching crops for this district
+                     const crops = cropData.features
+                        .filter(f => f.properties.name === districtName)
+                        .flatMap(f => f.properties.predicted_crops); // Combine crops from all matching entries
+                    
+                    console.log(`Crops for ${districtName}:`, crops); // Debug the crops data
+
+
+                    const popupContent = `
+                        <b>District:</b> ${districtName}<br>
+                        <b>Crops:</b> ${crops.length > 0 ? crops.join(", ") : "None"}
+                    `;
+                    layer.bindPopup(popupContent);
+                    layer.addTo(districtsLayer);
+
+                    // Plot crop dots if crops are available
+                    if (crops.length > 0) {
+                        const bounds = layer.getBounds();
+                        const center = bounds.getCenter();
+
+                        crops.forEach((crop, index) => {
+                            const offset = (index + 1) * 0.02; // Slightly offset dots
+
+                            const offsetLat = (Math.floor(index / 3) - 1) * 0.02; // Adjust for rows
+                            const offsetLng = (index % 3 - 1) * 0.02; // Adjust for columns
+                            const lat = center.lat + offsetLat;
+                            const lng = center.lng + offsetLng;
+
+                        
+                            L.circleMarker([center.lat + offset, center.lng + offset], {
+                                radius: 4,
+                                fillColor: cropColors[crop.toLowerCase()] || "#FFFFFF",
+                                color: "black",
+                                weight: 1,
+                                opacity: 1,
+                                fillOpacity: 0.8
+                            }).bindPopup(`<b>Crop:</b> ${crop}`).addTo(cropDotsLayer);
+                        });
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error loading lk.json:', error);
+        });
+        }
+
+
+
+        // Add a legend for crop colors
+        const legend = L.control({ position: "bottomright" });
+        legend.onAdd = function () {
+            const div = L.DomUtil.create("div", "legend");
+            div.innerHTML = "<b>Crop Colors</b><br>";
+            for (const [crop, color] of Object.entries(cropColors)) {
+                div.innerHTML += `<div><span style="background-color: ${color}; display: inline-block; width: 15px; height: 15px; margin-right: 5px;"></span>${crop}</div>`;
+            }
+            return div;
+        };
+        legend.addTo(map);
     </script>
 </body>
 </html>
+
