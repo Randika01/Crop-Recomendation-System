@@ -27,6 +27,9 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
+        const districtsLayer = L.layerGroup().addTo(map);
+        const cropDotsLayer = L.layerGroup().addTo(map); // Ensure it is above other layers
+
         // District Colors
         // const districtColors = {
         //     "Vavuniyāva": "#FF5733",
@@ -75,28 +78,32 @@
         }
 
         // Function to add crop dots to the map
-        function addCropDots(feature, crops) {
-            const bounds = L.geoJson(feature.geometry).getBounds();
-            const center = bounds.getCenter();
+        function addCropDots(savedCropsData) {
+            savedCropsData.features.forEach(feature => {
+                const { coordinates } = feature.geometry;
+                const { name, selected_crop } = feature.properties;
 
-            crops.forEach((crop, index) => {
-                // Create a grid-like pattern for placing multiple crops
-                const offsetLat = (Math.floor(index / 3) - 1) * 0.02; // Row offset
-                const offsetLng = (index % 3 - 1) * 0.02; // Column offset
+                if (selected_crop) {
+                    // Create non-colliding crop markers
+                    const offsetX = Math.random() * 0.02 - 0.01; // Random offset for x
+                    const offsetY = Math.random() * 0.02 - 0.01; // Random offset for y
                 
-                L.circleMarker([center.lat + offset, center.lng + offset], {
-                    radius: 8,
-                    fillColor: cropColors[crop.toLowerCase()] || "#FFFFFF",
-                    color: "black",
-                    weight: 1,
-                    opacity: 1,
-                    fillOpacity: 0.8
-                }).bindPopup(`<b>Crop:</b> ${crop}`).addTo(map);
+                    L.circleMarker([coordinates[1] + offsetY, coordinates[0] + offsetX], {
+                        radius: 4,
+                        fillColor: cropColors[selected_crop.toLowerCase()] || "#FFFFFF",
+                        color: "black",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    })
+                    .bindPopup(`<b>District:</b> ${name}<br><b>Crop:</b> ${selected_crop}`)
+                    .addTo(cropDotsLayer);
+                }
             });
         }
 
        // Fetch GeoJSON and crop data
-       fetch('http://127.0.0.1:5000/district_crops')
+       fetch('http://127.0.0.1:5000/saved_crops')
         .then(response => {
             if (!response.ok) {
                 console.error('Failed to load district crops:', response.status, response.statusText);
