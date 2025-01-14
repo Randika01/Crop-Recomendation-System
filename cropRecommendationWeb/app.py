@@ -44,7 +44,7 @@ class CropRecommendation(db.Model):
     humidity = db.Column(db.Float, nullable=False)
     pH = db.Column(db.Float, nullable=False)
     rainfall = db.Column(db.Float, nullable=False)
-    recommended_crop = db.Column(db.String(100), nullable=False)
+    selected_crop = db.Column(db.String(100), nullable=True)
 
 # Create the database tables
 with app.app_context():
@@ -130,6 +130,24 @@ def logout():
 def index():
     return render_template("index.html", username=session.get('username'))
 
+@app.route("/save_crop", methods=['POST'])
+def save_crop():
+    selected_crop = request.form['selected_crop']
+    crop_id = request.form['crop_id']
+
+    # Find the crop recommendation record by ID
+    recommendation = CropRecommendation.query.get(crop_id)
+    
+    if recommendation:
+        # Update the selected crop for the user
+        recommendation.selected_crop = selected_crop
+        db.session.commit()
+        flash(f'Your selected crop "{selected_crop}" has been saved successfully!', 'success')
+    else:
+        flash('Error saving selected crop. Please try again.', 'danger')
+
+    return redirect(url_for('crop_prediction'))
+
 @app.route('/crop_prediction')
 def crop_prediction():
     # Your logic for rendering the crop prediction page
@@ -207,8 +225,9 @@ def predict_crop():
 
     # Predict crop
     crop_prediction = crop_model.predict(features_scaled)
-    crop_index = np.argmax(crop_prediction)
-    crop_name = crop_encoder.inverse_transform([crop_index])[0]
+    # Get the top 4 crops based on predicted probabilities
+    top_4_crop_indices = np.argsort(crop_prediction[0])[-4:][::-1]  # Get the top 4 indices
+    top_4_crop_names = crop_encoder.inverse_transform(top_4_crop_indices)  # Get the corresponding crop names
 
     # Save the recommendation to the database
     if 'user_id' in session:
@@ -222,7 +241,6 @@ def predict_crop():
             humidity=humidity,
             pH=ph,
             rainfall=rainfall,
-            recommended_crop=crop_name,
             district=district,
             month=month
         )
@@ -231,6 +249,8 @@ def predict_crop():
     
     return render_template(
         "crop_prediction.html",
+        crop_result=f"The recommended crop is: {', '.join(top_4_crop_names)}",
+        crop_id=recommendation.id  # Pass the crop ID to save it later
         
     )
     
