@@ -265,14 +265,14 @@ def recommendations():
     
     return render_template("recommendations.html", recommendations=recommendations)
 
-@app.route("/district_crops",  methods=['GET'])
-def district_crops():
+@app.route("/saved_crops",  methods=['GET'])
+def saved_crops():
     try:
         crops_by_district = db.session.query(
             CropRecommendation.district,
             CropRecommendation.month,
-            db.func.group_concat(CropRecommendation.recommended_crop).label("predicted_crops")
-        ).group_by(CropRecommendation.district, CropRecommendation.month).all()
+            CropRecommendation.selected_crop
+        ).filter(CropRecommendation.selected_crop.isnot(None)).all()
 
         print("Crops by District (Debugging):", crops_by_district)
 
@@ -310,15 +310,14 @@ def district_crops():
         }
 
 
-        for district, month, crops in crops_by_district:
-            crops_list = crops.split(",") if crops else []
+        for district, month, selected_crop in crops_by_district:
             coordinates = district_centers.get(district, [80.7718, 7.8731])  # Fallback coordinates
             feature = {
                 "type": "Feature",
                 "properties": {
                     "name": district,
                     "month": month,
-                    "predicted_crops": crops_list
+                    "selected_crop": selected_crop
                 },
                 "geometry": {
                     "type": "Point",
@@ -330,12 +329,8 @@ def district_crops():
         return geojson_data
 
     except Exception as e:
-            app.logger.error(f"Error in /district_crops: {e}")
+            app.logger.error(f"Error in /saved_crops: {e}")
             return {"error": "Failed to load crops data"}, 500
-
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
