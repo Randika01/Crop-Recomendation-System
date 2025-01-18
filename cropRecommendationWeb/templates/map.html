@@ -5,16 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sri Lanka Map with District Colors</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <style>
-        #map {
-            height: 100vh;
-        }
-    </style>
+    <link rel="stylesheet" href="../static/css/map.css">
 </head>
 <body>
+    <div id="map-container">
+        <!-- Back Button -->
+        <button id="back-button" onclick="goBack()">Back</button>
     <div id="map"></div>
+    </div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
+        function goBack() {
+            window.history.back();
+        }
         // Initialize the map
         const map = L.map('map').setView([7.8731, 80.7718], 7); // Centered on Sri Lanka
 
@@ -24,14 +27,44 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
+        const districtsLayer = L.layerGroup().addTo(map);
+        const cropDotsLayer = L.layerGroup().addTo(map); // Ensure it is above other layers
+
         // District Colors
-        const districtColors = {
-            "Vavuniyāva": "#FF5733",
-            "Kolomba": "#33FF57",
-            "Mulativ": "#3357FF",
-            "Mahanuvara": "#FFD700",
+        // const districtColors = {
+        //     "Vavuniyāva": "#FF5733",
+        //     "Kolomba": "#33FF57",
+        //     "Mulativ": "#3357FF",
+        //     "Mahanuvara": "#FFD700",
             // Add more districts with colors
+        // };
+
+        // Crop Colors
+        const cropColors = {
+            "rice": "#FF0000",       // Red
+            "maize": "#008000",      // Green
+            "chickpea": "#FFFF00",   // Yellow
+            "kidneybeans": "#95f84c", // light green
+            "pigeonpeas": "#0000FF",  // Blue
+            "mothbeans": "#800080",   // Purple
+            "mungbean": "#00FF00",    // Lime Green
+            "blackgram": "#000000",   // Black
+            "lentil": "#8B4513",      // Saddle Brown
+            "pomegranate": "#DC143C", // Crimson
+            "banana": "#005EB8",      // Light Yellow
+            "mango": "#0e6251",       // Dark Orange
+            "grapes": "#ca72f9",      // Purple
+            "watermelon": "#FF6347",  // Tomato
+            "muskmelon": "#a0064e",   // dark pink
+            "apple": "#A52A2A",       // Brown
+            "orange": "#FFA500",      // Orange
+            "papaya": "#f9e79f",      // Yellow
+            "coconut": "#FFF5EE",     // Sea Shell
+            "cotton": "#001222",      // White
+            "jute": "#D2691E",        // Chocolate
+            "coffee": "#6F4F37",      // Coffee Brown
         };
+
 
         // Style function to apply district colors
         function styleFunction(feature) {
@@ -44,21 +77,78 @@
             };
         }
 
-        // Function to add popups and interactivity
-        function onEachFeature(feature, layer) {
-            layer.bindPopup(`<b>District:</b> ${feature.properties.name}`);
+        // Function to add crop dots to the map
+        function addCropDots(savedCropsData) {
+            savedCropsData.features.forEach(feature => {
+                const { coordinates } = feature.geometry;
+                const { name, selected_crop } = feature.properties;
+
+                if (selected_crop) {
+                    // Create non-colliding crop markers
+                    const offsetX = Math.random() * 0.02 - 0.01; // Random offset for x
+                    const offsetY = Math.random() * 0.02 - 0.01; // Random offset for y
+                
+                    L.circleMarker([coordinates[1] + offsetY, coordinates[0] + offsetX], {
+                        radius: 4,
+                        fillColor: cropColors[selected_crop.toLowerCase()] || "#FFFFFF",
+                        color: "black",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    })
+                    .bindPopup(`<b>District:</b> ${name}<br><b>Crop:</b> ${selected_crop}`)
+                    .addTo(cropDotsLayer);
+                }
+            });
         }
 
-        // Load GeoJSON data
-        fetch('lk.json')
-            .then(response => response.json())
-            .then(data => {
-                L.geoJson(data, {
-                    style: styleFunction,
-                    onEachFeature: onEachFeature
-                }).addTo(map);
+       // Fetch GeoJSON and crop data
+       fetch('http://127.0.0.1:5000/saved_crops')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
             })
-            .catch(error => console.error('Error loading GeoJSON:', error));
+            .then(savedCropsData => {
+                console.log("Saved Crops Data:", savedCropsData);
+                addCropDots(savedCropsData);
+            })
+            .catch(error => {
+                console.error('Error loading saved crops:', error);
+            });
+
+        // Function to load districts and crops
+
+    fetch('lk.json')
+        .then(response => response.json())
+        .then(districtData => {
+            L.geoJson(districtData, {
+                style: styleFunction,
+                onEachFeature: function (feature, layer) {
+                    const districtName = feature.properties.name;
+                    layer.bindPopup(`<b>District:</b> ${districtName}`);
+                        districtsLayer.addLayer(layer);
+                    }
+                });
+            })
+                     
+        .catch(error => {
+            console.error('Error loading lk.json:', error);
+        });
+
+        // Add a legend for crop colors
+        const legend = L.control({ position: "bottomright" });
+        legend.onAdd = function () {
+            const div = L.DomUtil.create("div", "legend");
+            div.innerHTML = "<b>Crop Colors</b><br>";
+            for (const [crop, color] of Object.entries(cropColors)) {
+                div.innerHTML += `<div><span style="background-color: ${color}; display: inline-block; width: 15px; height: 15px; margin-right: 5px;"></span>${crop}</div>`;
+            }
+            return div;
+        };
+        legend.addTo(map);
     </script>
 </body>
 </html>
+

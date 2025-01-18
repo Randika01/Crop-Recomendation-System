@@ -5,8 +5,11 @@ import pandas as pd
 import numpy as np
 from tensorflow.keras.models import load_model # type: ignore
 import joblib
+from flask_migrate import Migrate
+from flask_cors import CORS
 
 app = Flask(__name__, template_folder='.')
+CORS(app) 
 
 # Set up the database URI and secret key for sessions
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -15,6 +18,7 @@ app.secret_key = '3bb08d1b6b92e84572425b0d7d06acb2448cbb5c6ca54412'
 
 # Initialize the database
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Define the User model
 class User(db.Model):
@@ -26,6 +30,21 @@ class User(db.Model):
     farmer_type = db.Column(db.String(50), nullable=False)
     province = db.Column(db.String(50), nullable=False)
     farm_size = db.Column(db.Float, nullable=False)
+
+# Define the CropRecommendation model
+class CropRecommendation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Foreign key to the User table
+    district = db.Column(db.String(100), nullable=True)  # Update or add this line
+    month = db.Column(db.String(20), nullable=True)  # Add this line
+    nitrogen = db.Column(db.Float, nullable=False)
+    phosphorus = db.Column(db.Float, nullable=False)
+    potassium = db.Column(db.Float, nullable=False)
+    temperature = db.Column(db.Float, nullable=False)
+    humidity = db.Column(db.Float, nullable=False)
+    pH = db.Column(db.Float, nullable=False)
+    rainfall = db.Column(db.Float, nullable=False)
+    selected_crop = db.Column(db.String(100), nullable=True)
 
 # Create the database tables
 with app.app_context():
@@ -109,13 +128,36 @@ def logout():
     
 @app.route("/")
 def index():
-    return render_template("crop_prediction.html")
+    return render_template("index.html", username=session.get('username'))
+
+@app.route("/save_crop", methods=['POST'])
+def save_crop():
+    selected_crop = request.form['selected_crop']
+    crop_id = request.form['crop_id']
+
+    # Find the crop recommendation record by ID
+    recommendation = CropRecommendation.query.get(crop_id)
+    
+    if recommendation:
+        # Update the selected crop for the user
+        recommendation.selected_crop = selected_crop
+        db.session.commit()
+        flash(f'Your selected crop "{selected_crop}" has been saved successfully!', 'success')
+    else:
+        flash('Error saving selected crop. Please try again.', 'danger')
+
+    return redirect(url_for('crop_prediction'))
+
+@app.route('/crop_prediction')
+def crop_prediction():
+    # Your logic for rendering the crop prediction page
+    return render_template('crop_prediction.html')
 
 @app.route("/predict_storage", methods=['POST'])
 def predict_storage():
     # Step 1: Predict tank storage based on Area and Month
-    range_selected = request.form['Area']
-    month_name = request.form['Month']
+    range_selected = request.form['district']
+    month_name = request.form['month']
 
     # Map month names to numeric values
     month_mapping = {
@@ -131,9 +173,8 @@ def predict_storage():
 
     # One-hot encode the selected range
     range_encoded = range_encoder.transform([[range_selected]])
-    input_sequence = []
-    for storage in recent_storage:
-        input_sequence.append(np.concatenate((storage, range_encoded[0])))
+    input_sequence = [np.concatenate((storage, range_encoded[0])) for storage in recent_storage
+    ]
 
     input_sequence = np.array(input_sequence).reshape(1, 12, -1)
 
@@ -154,16 +195,19 @@ def predict_storage():
     return render_template(
         "crop_prediction.html",
         storage_statement=storage_statement,
-        predicted_storage=predicted_storage
+        predicted_storage=predicted_storage, district=range_selected,
+        month=month_name
     )
 
 @app.route("/predict_crop", methods=['POST'])
 def predict_crop():
     # Step 2: Predict crop based on soil nutrients and weather data
+    district = request.form.get('district')  # Retrieve district
+    month = request.form.get('month')        # Retrieve month
     N = float(request.form['Nitrogen'])
     P = float(request.form['Phosporus'])
     K = float(request.form['Potassium'])
-    temp = float(request.form['Temperature'])
+    temperature = float(request.form['Temperature'])
     humidity = float(request.form['Humidity'])
     ph = float(request.form['pH'])
     rainfall = float(request.form['Rainfall'])  # User-entered rainfall
@@ -176,17 +220,117 @@ def predict_crop():
         rainfall = crop_data['Rainfall'].mean()  # Replace rainfall with the mean value
 
     # Prepare features for crop recommendation
-    features = np.array([[N, P, K, temp, humidity, ph, rainfall]])
+    features = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
     features_scaled = crop_scaler.transform(features)
 
     # Predict crop
     crop_prediction = crop_model.predict(features_scaled)
-    crop_index = np.argmax(crop_prediction)
-    crop_name = crop_encoder.inverse_transform([crop_index])[0]
+    # Get the top 4 crops based on predicted probabilities
+    top_4_crop_indices = np.argsort(crop_prediction[0])[-4:][::-1]  # Get the top 4 indices
+    top_4_crop_names = crop_encoder.inverse_transform(top_4_crop_indices)  # Get the corresponding crop names
 
+    # Save the recommendation to the database
+    if 'user_id' in session:
+        user_id = session['user_id']
+        recommendation = CropRecommendation(
+            user_id=user_id,
+            nitrogen=N,
+            phosphorus=P,
+            potassium=K,
+            temperature=temperature,
+            humidity=humidity,
+            pH=ph,
+            rainfall=rainfall,
+            district=district,
+            month=month
+        )
+        db.session.add(recommendation)
+        db.session.commit()
     
     return render_template(
         "crop_prediction.html",
+        crop_result=f"The recommended crop is: {', '.join(top_4_crop_names)}",
+        crop_id=recommendation.id  # Pass the crop ID to save it later
         
     )
     
+@app.route("/recommendations")
+def recommendations():
+    if 'user_id' not in session:
+        flash('Please log in to view your recommendations.', 'info')
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    recommendations = CropRecommendation.query.filter_by(user_id=user_id).all()
+    
+    return render_template("recommendations.html", recommendations=recommendations)
+
+@app.route("/saved_crops",  methods=['GET'])
+def saved_crops():
+    try:
+        crops_by_district = db.session.query(
+            CropRecommendation.district,
+            CropRecommendation.month,
+            CropRecommendation.selected_crop
+        ).filter(CropRecommendation.selected_crop.isnot(None)).all()
+
+        print("Crops by District (Debugging):", crops_by_district)
+
+        geojson_data = {
+            "type": "FeatureCollection",
+            "features": []
+        }
+
+        district_centers = {
+        "Ampara": [81.6726, 7.2915],
+        "Anuradhapura": [80.4036, 8.3114],
+        "Badulla": [81.0550, 6.9898],
+        "Batticalo": [81.6822, 7.7144],
+        "Colombo": [79.8612, 6.9271],
+        "Galle": [80.2170, 6.0535],
+        "Gampaha": [79.9981, 7.0914],
+        "Hambantota": [81.1240, 6.1241],
+        "Jaffna": [80.0144, 9.6615],
+        "Kalutara": [79.9594, 6.5854],
+        "Kandy": [80.6350, 7.2906],
+        "Kegalle": [80.3478, 7.2522],
+        "Kilinochchi": [80.4181, 9.3803],
+        "Kurunegala": [80.3728, 7.4865],
+        "Mannar": [79.9045, 8.9761],
+        "Matale": [80.7323, 7.4679],
+        "Matara": [80.5353, 5.9488],
+        "Monaragala": [81.3483, 6.8712],
+        "Mullativu": [80.8298, 9.2800],
+        "Nuwara Eliya": [80.7812, 6.9497],
+        "Polonnaruwa": [81.0011, 7.9409],
+        "Puttalam": [79.8398, 8.0362],
+        "Ratnapura": [80.4012, 6.6828],
+        "Trincomalee": [81.2336, 8.5874],
+        "Vavuniya": [80.4928, 8.7540]
+        }
+
+
+        for district, month, selected_crop in crops_by_district:
+            coordinates = district_centers.get(district, [80.7718, 7.8731])  # Fallback coordinates
+            feature = {
+                "type": "Feature",
+                "properties": {
+                    "name": district,
+                    "month": month,
+                    "selected_crop": selected_crop
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": coordinates
+                }
+            }
+            geojson_data["features"].append(feature)
+
+        return geojson_data
+
+    except Exception as e:
+            app.logger.error(f"Error in /saved_crops: {e}")
+            return {"error": "Failed to load crops data"}, 500
+
+if __name__ == "__main__":
+    app.run(debug=True)
