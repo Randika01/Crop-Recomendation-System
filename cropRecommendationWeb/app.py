@@ -7,6 +7,9 @@ from tensorflow.keras.models import load_model # type: ignore
 import joblib
 from flask_migrate import Migrate
 from flask_cors import CORS
+from tensorflow.keras.losses import MeanSquaredError
+from sqlalchemy import func
+from datetime import datetime
 
 app = Flask(__name__, template_folder='.')
 CORS(app) 
@@ -46,14 +49,27 @@ class CropRecommendation(db.Model):
     rainfall = db.Column(db.Float, nullable=False)
     selected_crop = db.Column(db.String(100), nullable=True)
 
+# Feedback Model
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    feedback = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Feedback {self.id} by {self.name}>'
+    
+
 # Create the database tables
 with app.app_context():
     db.create_all()
 
 # Load models and scalers
-storage_model = load_model('single_lstm_storage_predictor.h5')  # LSTM model for tank storage prediction
+storage_model = load_model('single_lstm_storage_predictor.h5', custom_objects={"mse": MeanSquaredError()})  # LSTM model for tank storage prediction
 storage_scaler = joblib.load('storage_scaler.pkl')              # MinMaxScaler for Storage (%)
-range_encoder = joblib.load('range_encoder.pkl')                # OneHotEncoder for Range (District)
+storage_encoder_district = joblib.load('water_encoder_range.pkl')                # OneHotEncoder for Range (District)
+storage_encoder_month = joblib.load("water_encoder_month.pkl")  # LabelEncoder for Month
 
 crop_model = load_model('crop_recommendation_model.h5')         # Model for crop recommendation
 crop_scaler = joblib.load('crop_scaler.pkl')                    # MinMaxScaler for crop recommendation features
@@ -159,27 +175,30 @@ def predict_storage():
     range_selected = request.form['district']
     month_name = request.form['month']
 
-    # Map month names to numeric values
-    month_mapping = {
-        "January": 1, "February": 2, "March": 3, "April": 4,
-        "May": 5, "June": 6, "July": 7, "August": 8,
-        "September": 9, "October": 10, "November": 11, "December": 12
-    }
-    month_selected = month_mapping[month_name]
+    # Define districts without tanks
+    no_tank_districts = ["Colombo", "Gampaha", "Jaffna", "Kaluthara", "Kegalle","Kilinochchi", "Matara","Matale","Vavuniya", "Mullativu", "Nuwara Eliya", "Ratnapura"]
 
-    # Filter data for the selected district
-    filtered_data = tank_data[tank_data['Range'] == range_selected].sort_values(by=['Year', 'Month'])
-    recent_storage = filtered_data['Storage (%)'].values[-12:].reshape(-1, 1)
+    if range_selected in no_tank_districts:
+        storage_statement = f"No tanks available in {range_selected}."
+        session['storage_statement'] = storage_statement
+        return render_template(
+            "crop_prediction.html",
+            storage_statement=storage_statement,
+            predicted_storage=None,
+            district=range_selected,
+            month=month_name,
+        )
+    
+    # Encode categorical values
+    month_encoded = storage_encoder_month.transform([month_name])[0]
+    range_encoded = storage_encoder_district.transform([range_selected])[0]
 
-    # One-hot encode the selected range
-    range_encoded = range_encoder.transform([[range_selected]])
-    input_sequence = [np.concatenate((storage, range_encoded[0])) for storage in recent_storage
-    ]
+    # Prepare input for the model
+    sample_input = np.array([[month_encoded, range_encoded]]).reshape(1, 1, 2)
 
-    input_sequence = np.array(input_sequence).reshape(1, 12, -1)
 
     # Predict storage for the selected month
-    predicted_storage_normalized = storage_model.predict(input_sequence)
+    predicted_storage_normalized = storage_model.predict(sample_input)
     predicted_storage = storage_scaler.inverse_transform(predicted_storage_normalized)[0][0]
 
     # Determine if storage is sufficient
@@ -191,6 +210,9 @@ def predict_storage():
         storage_statement = (f"The predicted tank storage for {range_selected} in {month_name} is "
                              f"{predicted_storage:.2f}%. The storage is insufficient, and rainfall will play "
                              f"a critical role in crop cultivation.")
+        
+    # Store in session
+    session['storage_statement'] = storage_statement
 
     return render_template(
         "crop_prediction.html",
