@@ -188,6 +188,45 @@ def save_crop():
 
     return redirect(url_for('crop_prediction'))
 
+
+#temperature and rainfall
+@app.route('/predict_rainfall_and_temperature', methods=['POST'])
+def predict_rainfall_and_temperature():
+    """Predict both rainfall and temperature based on district and month"""
+    
+    district = request.form['district']
+    month = request.form['month']
+    predicted_storage = session.get('predicted_storage')
+
+    # Predict Rainfall
+    encoded_month_rainfall = rainfall_encoder_month.transform([month])[0]
+    encoded_district_rainfall = rainfall_encoder_district.transform([district])[0]
+    features_rainfall = np.array([[encoded_month_rainfall, encoded_district_rainfall]])
+    features_rainfall_scaled = rainfall_scaler.transform(features_rainfall)
+    predicted_rainfall = rainfall_model.predict(features_rainfall_scaled)
+
+    # Predict Temperature
+    encoded_month_temp = temp_encoder_month.transform([month])[0]
+    encoded_district_temp = temp_encoder_district.transform([district])[0]
+    features_temp = np.array([[encoded_month_temp, encoded_district_temp]])
+    features_temp_scaled = temperature_scaler.transform(features_temp)
+    predicted_temperature = temperature_model.predict(features_temp_scaled)
+
+    # Convert NumPy array to Python float before storing in session
+    session['predicted_rainfall'] = float(predicted_rainfall.item())  
+    session['predicted_temperature'] = float(predicted_temperature.item())  
+
+
+    # Show the predictions
+    return render_template(
+        'crop_prediction.html',
+        rainfall_statement=f"Predicted Rainfall: {predicted_rainfall[0]} mm",
+        temperature_statement=f"Predicted Temperature: {predicted_temperature[0]}°C",
+        predicted_storage=predicted_storage,
+        district=district,
+        month=month
+    )
+    
 @app.route('/crop_prediction')
 def crop_prediction():
     # Your logic for rendering the crop prediction page
