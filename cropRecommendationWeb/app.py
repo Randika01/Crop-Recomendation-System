@@ -206,6 +206,57 @@ def admin_dashboard():
     user_count, crop_count,feedback_count  = get_counts()  # Get the data to display on the dashboard
     return render_template('admin/index.html', users=user_count, crops=crop_count, feedback_count=feedback_count)
 
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        # Fetch the admin from the database based on the entered username
+        admin = Admin.query.filter_by(username=username).first()
+
+        if admin and check_password_hash(admin.password, password):  # Check the hashed password
+            session['username'] = admin.username  # Store the username in the session
+            return redirect(url_for('admin_dashboard'))  # Redirect to the admin dashboard
+        else:
+            flash('Invalid username or password', 'danger')  # Flash message for failed login
+            return render_template('/admin/login.html')
+
+    return render_template('/admin/login.html')
+
+@app.route('/admin/signup', methods=['GET', 'POST'])
+def admin_signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+
+        if password != confirm_password:
+            flash("Passwords do not match", "danger")
+            return redirect(url_for('admin_signup'))
+
+        existing_user = Admin.query.filter_by(username=username).first()
+        existing_email = Admin.query.filter_by(email=email).first()
+
+        if existing_user:
+            flash("Username already taken", "danger")
+            return redirect(url_for('admin_signup'))
+        if existing_email:
+            flash("Email already registered", "danger")
+            return redirect(url_for('admin_signup'))
+
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        new_admin = Admin(username=username, email=email, password=hashed_password)
+
+        db.session.add(new_admin)
+        db.session.commit()
+
+        flash("Admin account created successfully!", "success")
+        return redirect(url_for('admin_login'))
+
+    return render_template('admin/login.html')  #  Correctly rendering admin login page
+
 
     
 @app.route('/admin/logout')
