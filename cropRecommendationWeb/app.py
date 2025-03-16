@@ -170,6 +170,16 @@ def logout():
 def index():
     return render_template("index.html", username=session.get('username'))
 
+@app.route('/admin')
+def admin_dashboard():
+    # Check if the user is logged in
+    if 'username' not in session:
+        return redirect(url_for('admin_login'))  # Redirect to login if not logged in
+
+    user_count, crop_count,feedback_count  = get_counts()  # Get the data to display on the dashboard
+    return render_template('admin/index.html', users=user_count, crops=crop_count, feedback_count=feedback_count)
+    
+
 @app.route("/save_crop", methods=['POST'])
 def save_crop():
     selected_crop = request.form['selected_crop']
