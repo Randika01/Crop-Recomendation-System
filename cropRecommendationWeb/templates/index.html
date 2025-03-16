@@ -4,9 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crop Recommendation Platform</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="/static/css/styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Lavishly+Yours&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -84,6 +88,13 @@
       margin-top: 1rem;
       color: #555;
     }
+    /* User Icon Styles */
+    .user-icon {
+        font-size: 2rem;
+        margin-right: 8px;
+        color: #333;
+      }
+
   </style>
 </head>
 <body>
@@ -91,15 +102,21 @@
   <header class="header">
     <div class="container">
       <div class="logo">
-        <img src="images/HomeImages/logoo.png" alt="CropSelect Logo">
+        <img src="/static/HomeImages/logoo.png" alt="CropSelect Logo">
         <h1>CropSelect</h1>
       </div>
       <nav class="nav">
-        <a href="index.html">Home</a>
-        <a href="about.html">About us</a>
-        <a href="how-it-works.html">How It Works</a>
-        <a href="contact.html">Contact Us</a>
-        <a href="login.html" class="btn">Login / Signup</a>
+        <a href="#">Home</a>
+        <a href="http://127.0.0.1:5500/templates/map.html">Map</a>
+        <a href="/how-it-work">How It Works</a>
+        <a href="/about">About Us</a>
+        <a href="/contact">Contact Us</a>
+        {% if username %}
+          <span> <i class="fas fa-user user-icon"></i> {{ username }} </span>
+          <a href="/logout" class="btn">Logout</a>
+        {% else %}
+          <a href="/login" class="btn">Login / Signup</a>
+        {% endif %}
       </nav>
     </div>
   </header>
@@ -110,7 +127,11 @@
       <h1>Revolutionizing Sri Lankan Agriculture</h1>
       <p>Empower farmers with data-driven crop recommendations to maximize yield and sustainability.</p>
       <div class="cta-buttons">
-        <a href="#" class="btn">Get Started</a>
+        {% if username %}
+        <a href="/crop_prediction" class="btn">Get Started</a>
+      {% else %}
+        <a href="/login" class="btn">Get Started</a>
+      {% endif %}
         <a href="#features" class="btn secondary">Learn More</a>
       </div>
     </div>
@@ -122,19 +143,22 @@
       <h2>Latest Blogs</h2>
       <div class="blog-grid">
         <div class="blog-card">
-          <img src="images/HomeImages/feature3.jfif" alt="Blog 1">
+          <img src="/static//HomeImages/feature3.jfif" alt="Blog 1">
           <h3>AI-Driven Crop Recommendations</h3>
           <p>Leverages soil nutrient levels, weather data, and water availability.</p>
         </div>
         <div class="blog-card">
-          <img src="images/HomeImages/analyzer.jfif" alt="Blog 2">
+          <img src="/static/HomeImages/analyzer.jfif" alt="Blog 2">
           <h3>Region-Specific Insights</h3>
           <p>Suggestions tailored to Sri Lanka’s diverse climatic zones.</p>
         </div>
         <div class="blog-card">
-          <img src="images/HomeImages/mapp.jfif" alt="Blog 3">
+          <img src="/static/HomeImages/mapp.jfif" alt="Blog 3">
           <h3>Real-Time Dashboard</h3>
-          <p>View crop recommendations and cultivation summaries for every district.</p>
+          <p>
+            View crop recommendations and cultivation summaries for every
+            district.
+          </p>
         </div>
         <!-- <div class="blog-card">
           <img src="HomeImages/featy1.jfif" alt="Blog 3">
@@ -146,7 +170,17 @@
   </section>
 
   <!-- About the Platform Section -->
-  <section class="about" style="display: flex; align-items: flex-start;background-image: url('images/HomeImages/aboutImage1.jfif'); background-size: cover; background-position: center; padding: 20px;">
+  <section
+      class="about"
+      style="
+        display: flex;
+        align-items: flex-start;
+        background-image: url('/static/HomeImages/aboutImage1.jfif');
+        background-size: cover;
+        background-position: center;
+        padding: 20px;
+      "
+    >
     <div style="flex: 1; text-align: left;color: white;">
       <h2 style="text-align:justify;padding-top: 30px;">About the Platform</h2>
       <p>
@@ -160,7 +194,7 @@
       </ul>
     </div>
     <div>
-      <img src="images/HomeImages/aboutusImage2.jfif" alt="About CropSelect" style="max-width: 50%; height: auto;">
+      <img src="/static/HomeImages/aboutusImage2.jfif" alt="About CropSelect" style="max-width: 50%; height: auto;">
     </div>
   </section>
 
@@ -192,7 +226,7 @@
   <!-- Footer Section -->
   <footer class="footer">
     <div class="container">
-      <p>&copy; 2024 CropSelect | Designed for Sri Lankan Agriculture</p>
+      <p>&copy; 2025 CropSelect | Designed for Sri Lankan Agriculture</p>
       <div class="footer-links">
         <a href="#">Privacy Policy</a>
         <a href="#">Terms of Service</a>
