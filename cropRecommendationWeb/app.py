@@ -14,6 +14,30 @@ from datetime import datetime
 app = Flask(__name__, template_folder='.')
 CORS(app) 
 
+CROP_IMAGES ={
+    "rice":"crop-images/rice.jpg",
+    "maize":"crop-images/maize.jpg",
+    "chickpea":"crop-images/Chickpea.jpg",
+    "kidneybeans":"crop-images/kidneybeans.jpg",
+    "pigeonpeas":"crop-images/pigeonpeas.jpg",
+    "mothbeans":"crop-images/mothbeans.jpg",
+    "mungbean":"crop-images/mungbeans.jpg",
+    "blackgram":"crop-images/blackgram.jpg",
+    "lentil":"crop-images/Lentil.jpg",
+    "pomegranate":"crop-images/pomegranate.jpg",
+    "banana":"crop-images/banana.jpg",
+    "mango":"crop-images/mango.jpg",
+    "grapes":"crop-images/grapes.jpg",
+    "watermelon":"crop-images/watermelon.jpg",
+    "muskmelon":"crop-images/muskmelon.jpg",
+    "apple":"crop-images/apple.jpg",
+    "orange":"crop-images/orange.jpg",
+    "papaya":"crop-images/papaya.jpg",
+    "coffee":"crop-images/coffe.jpg",
+    "coconut":"crop-images/Coconut.jpg",
+    "cotton":"crop-images/cotton.jpg"
+}
+
 # Set up the database URI and secret key for sessions
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -226,14 +250,18 @@ def predict_crop():
     # Step 2: Predict crop based on soil nutrients and weather data
     district = request.form.get('district')  # Retrieve district
     month = request.form.get('month')        # Retrieve month
+    
     N = float(request.form['Nitrogen'])
     P = float(request.form['Phosporus'])
     K = float(request.form['Potassium'])
     temperature = float(request.form['Temperature'])
     humidity = float(request.form['Humidity'])
     ph = float(request.form['pH'])
-    rainfall = float(request.form['Rainfall'])  # User-entered rainfall
+    
+    rainfall = float(session.get('predicted_rainfall', 0))
+    temperature = float(session.get('predicted_temperature', 0))
 
+    
     # Retrieve the predicted storage sufficiency from storage prediction logic
     predicted_storage = float(request.form.get('Predict_Storage', 0))
 
@@ -251,6 +279,7 @@ def predict_crop():
     top_4_crop_indices = np.argsort(crop_prediction[0])[-4:][::-1]  # Get the top 4 indices
     top_4_crop_names = crop_encoder.inverse_transform(top_4_crop_indices)  # Get the corresponding crop names
 
+    top_4_crop_images = [CROP_IMAGES.get(crop, "default.jpg") for crop in top_4_crop_names]
     # Save the recommendation to the database
     if 'user_id' in session:
         user_id = session['user_id']
@@ -270,10 +299,11 @@ def predict_crop():
         db.session.commit()
     
     return render_template(
-        "crop_prediction.html",
-        crop_result=f"The recommended crop is: {', '.join(top_4_crop_names)}",
-        crop_id=recommendation.id  # Pass the crop ID to save it later
-        
+       "crop_prediction.html",
+        crop_result=f"The recommended crops are:",
+        crop_names=top_4_crop_names,
+        crop_images=top_4_crop_images,
+        crop_id=recommendation.id 
     )
     
 @app.route("/recommendations")
