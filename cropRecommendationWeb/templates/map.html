@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sri Lanka Map with District Colors</title>
+    <title>Sri Lankan Map with Crops</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="../static/css/map.css">
 </head>
@@ -11,15 +11,18 @@
     <div id="map-container">
         <!-- Back Button -->
         <button id="back-button" onclick="goBack()">Back</button>
-    <div id="map"></div>
+
+        <!-- Map -->
+        <div id="map"></div>
     </div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
+        // Back Button Functionality
         function goBack() {
             window.history.back();
         }
         // Initialize the map
-        const map = L.map('map').setView([7.8731, 80.7718], 7); // Centered on Sri Lanka
+        const map = L.map('map').setView([7.8731, 80.7718], 7);
 
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -31,40 +34,23 @@
         const cropDotsLayer = L.layerGroup().addTo(map); // Ensure it is above other layers
 
         // District Colors
-        // const districtColors = {
-        //     "Vavuniyāva": "#FF5733",
-        //     "Kolomba": "#33FF57",
-        //     "Mulativ": "#3357FF",
-        //     "Mahanuvara": "#FFD700",
+        const districtColors = {
+            "Vavuniyāva": "#FF5733",
+            "Kolomba": "#33FF57",
+            "Mulativ": "#3357FF",
+            "Mahanuvara": "#FFD700",
             // Add more districts with colors
-        // };
+        };
 
         // Crop Colors
         const cropColors = {
-            "rice": "#FF0000",       // Red
-            "maize": "#008000",      // Green
-            "chickpea": "#FFFF00",   // Yellow
-            "kidneybeans": "#95f84c", // light green
-            "pigeonpeas": "#0000FF",  // Blue
-            "mothbeans": "#800080",   // Purple
-            "mungbean": "#00FF00",    // Lime Green
-            "blackgram": "#000000",   // Black
-            "lentil": "#8B4513",      // Saddle Brown
-            "pomegranate": "#DC143C", // Crimson
-            "banana": "#005EB8",      // Light Yellow
-            "mango": "#0e6251",       // Dark Orange
-            "grapes": "#ca72f9",      // Purple
-            "watermelon": "#FF6347",  // Tomato
-            "muskmelon": "#a0064e",   // dark pink
-            "apple": "#A52A2A",       // Brown
-            "orange": "#FFA500",      // Orange
-            "papaya": "#f9e79f",      // Yellow
-            "coconut": "#FFF5EE",     // Sea Shell
-            "cotton": "#001222",      // White
-            "jute": "#D2691E",        // Chocolate
-            "coffee": "#6F4F37",      // Coffee Brown
+            "rice": "#FF0000", "maize": "#008000", "chickpea": "#FFFF00", "kidneybeans": "#95f84c",
+            "pigeonpeas": "#0000FF", "mothbeans": "#800080", "mungbean": "#00FF00", "blackgram": "#000000",
+            "lentil": "#8B4513", "pomegranate": "#DC143C", "banana": "#005EB8", "mango": "#0e6251",
+            "grapes": "#ca72f9", "watermelon": "#FF6347", "muskmelon": "#a0064e", "apple": "#A52A2A",
+            "orange": "#FFA500", "papaya": "#f9e79f", "coconut": "#FFF5EE", "cotton": "#001222",
+            "jute": "#D2691E", "coffee": "#6F4F37"
         };
-
 
         // Style function to apply district colors
         function styleFunction(feature) {
@@ -87,7 +73,7 @@
                     // Create non-colliding crop markers
                     const offsetX = Math.random() * 0.02 - 0.01; // Random offset for x
                     const offsetY = Math.random() * 0.02 - 0.01; // Random offset for y
-                
+
                     L.circleMarker([coordinates[1] + offsetY, coordinates[0] + offsetX], {
                         radius: 4,
                         fillColor: cropColors[selected_crop.toLowerCase()] || "#FFFFFF",
@@ -102,8 +88,9 @@
             });
         }
 
-       // Fetch GeoJSON and crop data
-       fetch('lk.json')
+        // Fetch saved crops data
+        
+        fetch('lk.json')
             .then(response => response.json())
             .then(districtData => {
                 L.geoJson(districtData, {
@@ -125,6 +112,8 @@
                 console.error('Error loading map data:', error);
             });
 
+
+        // Load GeoJSON districts
         fetch('lk.json')
             .then(response => response.json())
             .then(districtData => {
@@ -133,13 +122,13 @@
                     onEachFeature: function (feature, layer) {
                         const districtName = feature.properties.name;
                         layer.bindPopup(`<b>District:</b> ${districtName}`);
-                            districtsLayer.addLayer(layer);
-                        }
-                    });
-                })    
-                .catch(error => {
-                    console.error('Error loading lk.json:', error);
+                        districtsLayer.addLayer(layer);
+                    }
                 });
+            })
+            .catch(error => {
+                console.error('Error loading districts:', error);
+            });
 
         // Add a legend for crop colors
         const legend = L.control({ position: "bottomright" });
@@ -155,4 +144,3 @@
     </script>
 </body>
 </html>
-
