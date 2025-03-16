@@ -210,6 +210,9 @@ def predict_storage():
         storage_statement = (f"The predicted tank storage for {range_selected} in {month_name} is "
                              f"{predicted_storage:.2f}%. The storage is insufficient, and rainfall will play "
                              f"a critical role in crop cultivation.")
+        
+    # Store in session
+    session['storage_statement'] = storage_statement
 
     return render_template(
         "crop_prediction.html",
