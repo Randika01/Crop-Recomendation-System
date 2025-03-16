@@ -103,39 +103,43 @@
         }
 
        // Fetch GeoJSON and crop data
-       fetch('http://127.0.0.1:5000/saved_crops')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
+       fetch('lk.json')
+            .then(response => response.json())
+            .then(districtData => {
+                L.geoJson(districtData, {
+                    style: styleFunction,
+                    onEachFeature: function (feature, layer) {
+                        const districtName = feature.properties.name;
+                        layer.bindPopup(`<b>District:</b> ${districtName}`);
+                        districtsLayer.addLayer(layer);
+                    }
+                });
+                return fetch('http://127.0.0.1:5000/saved_crops'); // Fetch crops only after districts are loaded
             })
+            .then(response => response.json())
             .then(savedCropsData => {
                 console.log("Saved Crops Data:", savedCropsData);
                 addCropDots(savedCropsData);
             })
             .catch(error => {
-                console.error('Error loading saved crops:', error);
+                console.error('Error loading map data:', error);
             });
 
-        // Function to load districts and crops
-
-    fetch('lk.json')
-        .then(response => response.json())
-        .then(districtData => {
-            L.geoJson(districtData, {
-                style: styleFunction,
-                onEachFeature: function (feature, layer) {
-                    const districtName = feature.properties.name;
-                    layer.bindPopup(`<b>District:</b> ${districtName}`);
-                        districtsLayer.addLayer(layer);
-                    }
+        fetch('lk.json')
+            .then(response => response.json())
+            .then(districtData => {
+                L.geoJson(districtData, {
+                    style: styleFunction,
+                    onEachFeature: function (feature, layer) {
+                        const districtName = feature.properties.name;
+                        layer.bindPopup(`<b>District:</b> ${districtName}`);
+                            districtsLayer.addLayer(layer);
+                        }
+                    });
+                })    
+                .catch(error => {
+                    console.error('Error loading lk.json:', error);
                 });
-            })
-                     
-        .catch(error => {
-            console.error('Error loading lk.json:', error);
-        });
 
         // Add a legend for crop colors
         const legend = L.control({ position: "bottomright" });
