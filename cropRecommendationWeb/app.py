@@ -68,7 +68,8 @@ with app.app_context():
 # Load models and scalers
 storage_model = load_model('single_lstm_storage_predictor.h5', custom_objects={"mse": MeanSquaredError()})  # LSTM model for tank storage prediction
 storage_scaler = joblib.load('storage_scaler.pkl')              # MinMaxScaler for Storage (%)
-range_encoder = joblib.load('range_encoder.pkl')                # OneHotEncoder for Range (District)
+storage_encoder_district = joblib.load('water_encoder_range.pkl')                # OneHotEncoder for Range (District)
+storage_encoder_month = joblib.load("water_encoder_month.pkl")  # LabelEncoder for Month
 
 crop_model = load_model('crop_recommendation_model.h5')         # Model for crop recommendation
 crop_scaler = joblib.load('crop_scaler.pkl')                    # MinMaxScaler for crop recommendation features
