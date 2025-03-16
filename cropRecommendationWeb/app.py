@@ -188,27 +188,16 @@ def predict_storage():
             month=month_name,
         )
     
-    # Map month names to numeric values
-    month_mapping = {
-        "January": 1, "February": 2, "March": 3, "April": 4,
-        "May": 5, "June": 6, "July": 7, "August": 8,
-        "September": 9, "October": 10, "November": 11, "December": 12
-    }
-    month_selected = month_mapping[month_name]
+    # Encode categorical values
+    month_encoded = storage_encoder_month.transform([month_name])[0]
+    range_encoded = storage_encoder_district.transform([range_selected])[0]
 
-    # Filter data for the selected district
-    filtered_data = tank_data[tank_data['Range'] == range_selected].sort_values(by=['Year', 'Month'])
-    recent_storage = filtered_data['Storage (%)'].values[-12:].reshape(-1, 1)
+    # Prepare input for the model
+    sample_input = np.array([[month_encoded, range_encoded]]).reshape(1, 1, 2)
 
-    # One-hot encode the selected range
-    range_encoded = range_encoder.transform([[range_selected]])
-    input_sequence = [np.concatenate((storage, range_encoded[0])) for storage in recent_storage
-    ]
-
-    input_sequence = np.array(input_sequence).reshape(1, 12, -1)
 
     # Predict storage for the selected month
-    predicted_storage_normalized = storage_model.predict(input_sequence)
+    predicted_storage_normalized = storage_model.predict(sample_input)
     predicted_storage = storage_scaler.inverse_transform(predicted_storage_normalized)[0][0]
 
     # Determine if storage is sufficient
