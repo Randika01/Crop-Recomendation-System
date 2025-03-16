@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template,redirect, url_for, flash, session
+from flask import Flask, request, render_template,redirect, url_for, flash,jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import pandas as pd
@@ -11,7 +11,7 @@ from tensorflow.keras.losses import MeanSquaredError
 from sqlalchemy import func
 from datetime import datetime
 
-app = Flask(__name__, template_folder='.')
+app = Flask(__name__)
 CORS(app) 
 
 CROP_IMAGES ={
@@ -97,7 +97,7 @@ with app.app_context():
     db.create_all()
 
 # Load models and scalers
-storage_model = load_model('single_lstm_storage_predictor.h5', custom_objects={"mse": MeanSquaredError()})  # LSTM model for tank storage prediction
+storage_model = load_model("lstm_tank_storage.h5", custom_objects={"mse": MeanSquaredError()})  # LSTM model for tank storage prediction
 storage_scaler = joblib.load('storage_scaler.pkl')              # MinMaxScaler for Storage (%)
 storage_encoder_district = joblib.load('water_encoder_range.pkl')                # OneHotEncoder for Range (District)
 storage_encoder_month = joblib.load("water_encoder_month.pkl")  # LabelEncoder for Month
@@ -492,7 +492,7 @@ def predict_storage():
 
     # Predict storage for the selected month
     predicted_storage_normalized = storage_model.predict(sample_input)
-    predicted_storage = storage_scaler.inverse_transform(predicted_storage_normalized)[0][0]
+    predicted_storage = storage_scaler.inverse_transform(predicted_storage_normalized.reshape(-1, 1))[0][0]
 
     print(f"Raw model prediction: {predicted_storage_normalized}")
     print(f"Inverse transformed prediction: {predicted_storage}")
@@ -526,7 +526,6 @@ def predict_crop():
     N = float(request.form['Nitrogen'])
     P = float(request.form['Phosporus'])
     K = float(request.form['Potassium'])
-    temperature = float(request.form['Temperature'])
     humidity = float(request.form['Humidity'])
     ph = float(request.form['pH'])
     
