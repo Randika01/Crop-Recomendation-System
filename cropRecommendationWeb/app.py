@@ -272,6 +272,36 @@ def user():
       # Fetching all users from the User table
     return render_template('admin/user.html', users=users)
 
+@app.route('/admin/feedback', methods=['GET'])
+def admin_feedback():
+    try:
+        feedbacks = Feedback.query.all()
+        print("Fetched Feedback:", feedbacks)  # Debugging line
+        return render_template("admin/feedback.html", feedbacks=feedbacks)
+    except Exception as e:
+        print("Error fetching feedback:", str(e))
+        return "Error fetching feedback", 500
+    
+@app.route('/delete_feedback/<int:feedback_id>', methods=['POST'])
+def delete_feedback(feedback_id):
+    feedback = Feedback.query.get_or_404(feedback_id)
+    db.session.delete(feedback)
+    db.session.commit()
+    return redirect(url_for('admin_feedback'))
+
+@app.route('/api/farmer_data')
+def get_farmer_data():
+    # Query to group by farmer type and calculate average farm size
+    farmer_data = db.session.query(
+        User.farmer_type,
+        func.avg(User.farm_size).label('avg_farm_size'),
+        func.count(User.id).label('farmer_count')
+    ).group_by(User.farmer_type).all()
+
+    # Format data for JSON response
+    data = [{"farmer_type": row.farmer_type, "avg_farm_size": float(row.avg_farm_size)} for row in farmer_data]
+
+    return jsonify(data)
 
 # Route to delete a user
 @app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
@@ -300,6 +330,75 @@ def delete_crop(crop_id):
         flash('Crop not found.', 'danger')
     
     return redirect(url_for('crops'))
+
+@app.route('/api/crop_recommendations')
+def crop_recommendations():
+    # Fetch district and recommended_crop data from CropRecommendation table
+    crop_data = db.session.query(CropRecommendation.district, CropRecommendation.selected_crop).all()
+    
+    # Aggregate data to get the count of each crop by district
+    district_crop_count = {}
+    for district, crop in crop_data:
+        if district not in district_crop_count:
+            district_crop_count[district] = {}
+        if crop not in district_crop_count[district]:
+            district_crop_count[district][crop] = 0
+        district_crop_count[district][crop] += 1
+    
+    # Prepare the data for the Pie Chart (total count of crops per district)
+    chart_data = []
+    for district, crops in district_crop_count.items():
+        total_crops = sum(crops.values())  # Total crops in each district
+        chart_data.append({
+            'district': district,
+            'total_crops': total_crops
+        })
+    
+    return jsonify(chart_data)
+
+
+
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        feedback_message = request.form['message']
+        
+        # Save feedback to the database
+        feedback = Feedback(name=name, email=email, feedback=feedback_message)
+        db.session.add(feedback)
+        db.session.commit()
+        
+        # Redirect after successful submission (you can modify the redirect)
+        return jsonify({"message": "Feedback submitted successfully!"}), 200
+    return render_template('contact.html')
+
+
+# Admin Panel to view feedbacks
+@app.route('/admin')
+def admin():
+    # Query all feedback messages from the database
+    feedbacks = Feedback.query.all()
+    return render_template('admin_dashboard.html', feedbacks=feedbacks)
+
+# @app.route('/map')
+# def map_page():
+#     return render_template('map.html')    map route
+
+@app.route('/how-it-work')
+def how_work():
+    return render_template('how-it-works.html')
+
+@app.route('/contact')
+def contact_page():
+    return render_template('contact.html')
+
+@app.route('/about')
+def about_page():
+    return render_template('about.html')
+
 
 @app.route("/save_crop", methods=['POST'])
 def save_crop():
@@ -365,7 +464,7 @@ def crop_prediction():
 
 @app.route("/predict_storage", methods=['POST'])
 def predict_storage():
-    # Step 1: Predict tank storage based on Area and Month
+    # Step 1: Predict water storage based on user input (District & Month)
     range_selected = request.form['district']
     month_name = request.form['month']
 
@@ -395,7 +494,10 @@ def predict_storage():
     predicted_storage_normalized = storage_model.predict(sample_input)
     predicted_storage = storage_scaler.inverse_transform(predicted_storage_normalized)[0][0]
 
-    # Determine if storage is sufficient
+    print(f"Raw model prediction: {predicted_storage_normalized}")
+    print(f"Inverse transformed prediction: {predicted_storage}")
+    
+    # storage sufficiency decision
     if predicted_storage > 70:
         storage_statement = (f"The predicted tank storage for {range_selected} in {month_name} is "
                              f"{predicted_storage:.2f}%. The storage is sufficient, and you can use tank water "
@@ -437,7 +539,7 @@ def predict_crop():
 
     # Adjust rainfall if storage is sufficient
     if predicted_storage > 70:
-        rainfall = crop_data['Rainfall'].mean()  # Replace rainfall with the mean value
+       predicted_rainfall = crop_data['Rainfall'].mean()  # Replace rainfall with the mean value
 
     # Prepare features for crop recommendation
     features = np.array([[N, P, K, temperature, humidity, ph, rainfall]])
