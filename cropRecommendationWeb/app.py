@@ -123,6 +123,9 @@ tank_data['Month'] = pd.to_datetime(tank_data['Month'], format='%B').dt.month  #
 
 crop_data = pd.read_csv("Crop_recommendation.csv")              # Crop recommendation dataset
 
+print("Scaler Min:", storage_scaler.data_min_)
+print("Scaler Max:", storage_scaler.data_max_)
+
 # User Routes
 @app.route("/signup", methods=['GET', 'POST'])
 def signup():
@@ -187,6 +190,12 @@ def logout():
 @app.route("/")
 def index():
     return render_template("index.html", username=session.get('username'))
+def get_counts():
+    user_count = User.query.count()  # Use SQLAlchemy to count users
+    crop_count = CropRecommendation.query.count()  # Use SQLAlchemy to count crops
+    feedback_count = Feedback.query.count()  # Count of feedback
+    return user_count, crop_count, feedback_count
+
 
 @app.route('/admin')
 def admin_dashboard():
@@ -196,6 +205,8 @@ def admin_dashboard():
 
     user_count, crop_count,feedback_count  = get_counts()  # Get the data to display on the dashboard
     return render_template('admin/index.html', users=user_count, crops=crop_count, feedback_count=feedback_count)
+
+
     
 @app.route('/admin/logout')
 def admin_logout():
