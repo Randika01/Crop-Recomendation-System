@@ -49,6 +49,18 @@ class CropRecommendation(db.Model):
     rainfall = db.Column(db.Float, nullable=False)
     selected_crop = db.Column(db.String(100), nullable=True)
 
+# Feedback Model
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    feedback = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Feedback {self.id} by {self.name}>'
+    
+
 # Create the database tables
 with app.app_context():
     db.create_all()
