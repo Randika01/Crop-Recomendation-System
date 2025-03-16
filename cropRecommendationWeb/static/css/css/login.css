@@ -13,6 +13,9 @@ body {
     background-attachment: fixed; /* Keeps background fixed while scrolling */
     height: 100vh; /* Full-screen height */
 }
+p .signup-redirect .a{
+    color: #024b1aa8;
+}
 
 .container {
     display: flex;
@@ -22,7 +25,17 @@ body {
     height: 150vh;
 }
 
-.signup-box, 
+.signup-box{
+    background-color: rgba(216, 247, 214, 0.4); /* Slight transparency to see the background */
+    padding: 40px 30px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-top: 5%;
+    bottom: 10%;  
+}
 .login-box {
     background-color: rgba(216, 243, 216, 0.9); /* Slight transparency to see the background */
     padding: 40px 30px;
@@ -35,13 +48,14 @@ body {
 
 .title {
     font-size: 28px;
-    color: #89d434;
+    color: #2c6e49;
+    font-weight: bold;
     margin-bottom: 10px;
 }
 
 .subtitle {
     font-size: 16px;
-    color: #666;
+    color: #080101;
     margin-bottom: 25px;
 }
 
@@ -61,13 +75,13 @@ body {
 .signup-form input:focus, 
 .signup-form select:focus, 
 .login-form input:focus {
-    border-color: #98cc44;
+    border-color: #10551b;
     outline: none;
 }
 
 .signup-form button, 
 .login-form button {
-    background-color: #98cc36;
+    background-color: #2c6e49;
     color: white;
     font-size: 18px;
     font-weight: bold;
@@ -78,7 +92,7 @@ body {
 
 .signup-form button:hover, 
 .login-form button:hover {
-    background-color: #9aee55;
+    background-color: #2c6e49;
 }
 
 .signup-redirect, 
@@ -89,7 +103,7 @@ body {
 
 .signup-redirect a, 
 .login-redirect a {
-    color: #94d32e;
+    color: #137c0f;
     text-decoration: none;
     font-weight: bold;
 }
@@ -107,7 +121,7 @@ body {
 
 .signup-form label {
     font-size: 16px;
-    color: #555;
+    color: #0f0505;
     text-align: left;
     display: block;
     margin-bottom: 10px;
