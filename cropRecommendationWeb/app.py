@@ -170,6 +170,57 @@ def logout():
 def index():
     return render_template("index.html", username=session.get('username'))
 
+@app.route('/admin')
+def admin_dashboard():
+    # Check if the user is logged in
+    if 'username' not in session:
+        return redirect(url_for('admin_login'))  # Redirect to login if not logged in
+
+    user_count, crop_count,feedback_count  = get_counts()  # Get the data to display on the dashboard
+    return render_template('admin/index.html', users=user_count, crops=crop_count, feedback_count=feedback_count)
+    
+@app.route('/admin/logout')
+def admin_logout():
+    session.pop('username', None)  # Remove the username from the session
+    return redirect(url_for('admin_login'))  # Redirect to login page
+ 
+    
+    #Route to display users
+@app.route('/admin/user', methods=['GET'])
+def user():
+    users = User.query.all()
+      # Fetching all users from the User table
+    return render_template('admin/user.html', users=users)
+
+
+# Route to delete a user
+@app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+def delete_user(user_id):
+    user = User.query.get(user_id)  # Find the user by their ID
+    if user:
+        db.session.delete(user)  # Delete the user from the database
+        db.session.commit()  # Commit the transaction to save changes
+    return redirect(url_for('user'))
+    
+@app.route('/admin/crops')
+def crops():
+    # Fetch all crop recommendations from the database
+    crops_data = CropRecommendation.query.all()
+    return render_template('admin/crops.html', crops=crops_data)
+
+@app.route('/delete_crop/<int:crop_id>', methods=['POST'])
+def delete_crop(crop_id):
+    # Find and delete the crop entry by ID from the database
+    crop = CropRecommendation.query.get(crop_id)
+    if crop:
+        db.session.delete(crop)  # Delete the crop record from the database
+        db.session.commit()  # Commit the transaction to save the changes
+        flash('Crop deleted successfully.', 'success')
+    else:
+        flash('Crop not found.', 'danger')
+    
+    return redirect(url_for('crops'))
+
 @app.route("/save_crop", methods=['POST'])
 def save_crop():
     selected_crop = request.form['selected_crop']
