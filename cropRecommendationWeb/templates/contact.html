@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contact Us - CropSelect</title>
   <link rel="stylesheet" href="contact.css"> <!-- Link to the CSS file -->
+  <link rel="stylesheet" href="../static/css/contact2.css"> 
   <link href="https://fonts.googleapis.com/css2?family=Lavishly+Yours&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -16,13 +17,13 @@
         <img src="images/HomeImages/logoo.png" alt="CropSelect Logo">
         <h1>CropSelect</h1>
       </div>
-      <nav class="nav">
+      <!--nav class="nav">
         <a href="index.html">Home</a>
         <a href="about.html">About us</a>
         <a href="how-it-works.html">How It Works</a>
         <a href="contact.html" class="active">Contact Us</a>
         <a href="login.html" class="btn">Login / Signup</a>
-      </nav>
+      </nav-->
     </div>
   </header>
 
@@ -45,6 +46,29 @@
     </section>
   </main>
 
+  <div class="contact-container">
+    <h1>Contact Us</h1>
+    <form action="{{ url_for('contact') }}" method="POST" id="contact-form">
+      <div class="form-group">
+        <label for="name">Your Name:</label>
+        <input type="text" id="name" name="name" required placeholder="Enter your name">
+      </div>
+      <div class="form-group">
+        <label for="email">Your Email:</label>
+        <input type="email" id="email" name="email" required placeholder="Enter your email">
+      </div>
+      <div class="form-group">
+        <label for="message">Your Message:</label>
+        <textarea id="message" name="message" rows="5" required placeholder="Enter your message"></textarea>
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+
+{% if success %}
+<p>Your feedback has been submitted successfully!</p>
+{% endif %}
+  </div>
+
   <!-- Footer Section -->
   <footer class="footer">
     <div class="container">
@@ -56,5 +80,49 @@
       </div>
     </div>
   </footer>
-</body>
-</html>
+  <!-- Add SweetAlert Library -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  document.getElementById('contact-form').addEventListener('submit', async function(event) {
+      event.preventDefault(); // Prevent default form submission
+  
+      const formData = new FormData(event.target);
+  
+      try {
+          const response = await fetch('/contact', {
+              method: 'POST',
+              body: formData
+          });
+  
+          const responseData = await response.json(); // Get response from backend
+  
+          if (response.ok) {
+              Swal.fire({
+                  icon: 'success',
+                  title: 'Successfully Sent!',
+                  text: responseData.message,
+                  confirmButtonText: 'OK'
+              }).then(() => {
+                  document.getElementById('contact-form').reset(); // Reset form after success
+              });
+          } else {
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Oops...',
+                  text: responseData.error || 'Something went wrong. Please try again!',
+                  confirmButtonText: 'OK'
+              });
+          }
+      } catch (error) {
+          console.error('Error submitting form:', error);
+          Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Unable to submit feedback. Please try again!',
+              confirmButtonText: 'OK'
+          });
+      }
+  });
+  </script>
+  
