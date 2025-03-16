@@ -1,0 +1,49 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+#map-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f4f4f4;
+}
+
+#back-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    align-self: flex-start;
+    margin-left: 20px;
+}
+
+#back-button:hover {
+    background-color: #05af30;
+}
+
+#map {
+    width: 200vmin; /* Ensure it fits within a square */
+    height: 90vmin; /* Keep the map square */
+    border: 2px solid #ccc;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.legend {
+    background-color: white;
+    padding: 10px;
+    border: 1px solid black;
+    border-radius: 5px;
+    font-size: 14px;
+    line-height: 1.5em;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
