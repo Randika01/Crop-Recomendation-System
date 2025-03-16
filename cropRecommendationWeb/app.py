@@ -99,6 +99,11 @@ crop_model = load_model('crop_recommendation_model.h5')         # Model for crop
 crop_scaler = joblib.load('crop_scaler.pkl')                    # MinMaxScaler for crop recommendation features
 crop_encoder = joblib.load('crop_encoder.pkl')                  # LabelEncoder for crop names
 
+#load temperature model and scalers 
+temperature_model = load_model("temperature_prediction_model.h5")
+temp_encoder_month = joblib.load("Temp_encoder_month.pkl")  # LabelEncoder for month
+temp_encoder_district = joblib.load("Temp_encoder_district.pkl")  # LabelEncoder for district
+temperature_scaler = joblib.load("temperature_scaler.pkl")  # Load the appropriate scaler
 # Load datasets
 tank_data = pd.read_csv("Tank_Water_Storage.csv")               # Water tank storage dataset
 tank_data['Month'] = pd.to_datetime(tank_data['Month'], format='%B').dt.month  # Convert month names to numeric
