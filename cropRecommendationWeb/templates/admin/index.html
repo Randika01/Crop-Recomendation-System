@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Montserrat Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Material Icons -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
+      rel="stylesheet"
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/admin_style.css" />
+
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Header -->
+      <header class="header">
+        <div class="menu-icon" onclick="openSidebar()">
+          <span class="material-icons-outlined">menu</span>
+        </div>
+        <div class="header-left">
+          
+        </div>
+        <div class="header-right">
+          
+          <span class="material-icons-outlined">account_circle</span>
+ 
+          <!-- Check if the user is logged in -->
+          {% if session.get('username') %}
+          <div class="user-info">
+              <span class="username">{{ session.get('username') }}</span>
+              <!-- Logout button -->
+              <a href="{{ url_for('admin_logout') }}">
+                  <button class="logout-btn">Logout</button>
+              </a>
+          </div>
+      {% else %}
+          <a href="{{ url_for('admin_login') }}">
+              <button class="login-btn">Login</button>
+          </a>
+      {% endif %}
+ 
+
+
+         
+        
+        </div>
+      </header>
+      <!-- End Header --> 
+      <!-- Sidebar -->
+      <aside id="sidebar">
+        <div class="sidebar-title">
+          <div class="sidebar-brand">
+            <span class="material-icons-outlined"><h6>🌱</h6></span> CropSelect
+          </div>
+          <span class="material-icons-outlined" onclick="closeSidebar()"
+            >close</span
+          >
+        </div>
+
+        <ul class="sidebar-list">
+          <li class="sidebar-list-item">
+            <a href="#" target="_blank">
+              <span class="material-icons-outlined">dashboard</span> Dashboard
+            </a>
+          </li>
+          <a href="http://127.0.0.1:5000/admin/user" >
+            <li class="sidebar-list-item">
+              <span class="material-icons-outlined">inventory_2</span> Users
+            </li>
+          </a>
+          <a href="{{ url_for('crops') }}">
+            <li class="sidebar-list-item">
+              <span class="material-icons-outlined">category</span> Crops
+            </li>
+          </a>
+          <a href="http://127.0.0.1:5500/templates/map.html" target="_blank">
+            <li class="sidebar-list-item">
+              <span class="material-icons-outlined">groups</span> Map
+            </li>
+          </a>
+
+            <a href="http://127.0.0.1:5000/admin/feedback" >
+              <li class="sidebar-list-item">
+              <span class="material-icons-outlined">fact_check</span> Feedback
+            </li>
+            </a>
+          
+         
+        </ul>
+      </aside>
+      <!-- End Sidebar -->
+
+      <!-- Main -->
+      <main class="main-container">
+        <div id="user-count" data-value="{{ users }}" class="hidden-data"></div>
+        <div id="crop-count" data-value="{{ crops }}" class="hidden-data"></div>
+        <div id="feedback-count" data-value="{{ feedback_count }}" class="hidden-data"></div>
+
+        <div class="main-title">
+          <h2>DASHBOARD</h2>
+        </div>
+
+        <div class="main-cards">
+          <div class="card">
+            <div class="card-inner">
+              <h3>USERS</h3>
+              <span class="material-icons-outlined">groups</span>
+            </div>
+            <h1>{{ users }}</h1>
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <h3>CROPS</h3>
+              <span class="material-icons-outlined">category</span>
+            </div>
+            <h1>{{ crops }}</h1>
+            <!-- Dynamic count of users -->
+          </div>
+
+          <div class="card">
+            <div class="card-inner">
+              <h3>Feedbacks</h3>
+              <span class="material-icons-outlined">inventory_2</span>
+            </div>
+            <h1>{{ feedback_count }}</h1>
+          </div>
+
+        
+        </div>
+        <div class="charts">
+          <div class="charts-card">
+            <h2 class="chart-title">Farm Type Vs Average Farm Size</h2>
+            <div id="bar-chart"></div>
+
+            <!-- Added canvas for user chart -->
+          </div>
+
+          <div class="charts-card">
+            <h2 class="chart-title">Crop Recommendations by District</h2>
+            <div id="area-chart"></div>
+          </div>
+        </div>
+      </main>
+      <!-- End Main -->
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", async function () {
+        try {
+          // Fetch data from the API for the farm size chart
+          const response = await fetch("/api/farmer_data");
+          const farmerData = await response.json();
+
+          // Extract data for the farm size chart
+          const farmerTypes = farmerData.map((item) => item.farmer_type);
+          const avgFarmSizes = farmerData.map((item) => item.avg_farm_size);
+
+          // Farm Size Chart Configuration
+          const farmSizeOptions = {
+            chart: {
+              type: "bar",
+              background: "#212121", // Dark background for the chart
+              foreColor: "#ffffff", // White text on dark background
+            },
+            series: [
+              {
+                name: "Average Farm Size (Acres)",
+                data: avgFarmSizes,
+              },
+            ],
+            xaxis: {
+              categories: farmerTypes,
+              labels: {
+                style: {
+                  colors: "#ffffff", // White color for x-axis labels
+                  fontSize: "14px", // Increase font size for better readability
+                  fontWeight: "600", // Make the labels bolder
+                },
+              },
+            },
+            yaxis: {
+              labels: {
+                style: {
+                  colors: "#ffffff", // White color for y-axis labels
+                  fontSize: "14px", // Increase font size for better readability
+                  fontWeight: "600", // Make the labels bolder
+                },
+              },
+            },
+            title: {
+              align: "center",
+              style: {
+                color: "#FF5722", // Use a bright color for the title to make it stand out
+                fontSize: "24px", // Larger font size for the title
+                fontWeight: "700", // Bold the title for emphasis
+              },
+            },
+            plotOptions: {
+              bar: {
+                distributed: true, // Create separate colors for each bar
+                horizontal: false, // Keep bars vertical
+                columnWidth: "50%", // Adjust bar width
+              },
+            },
+            colors: ["#4CAF50", "#FF9800", "#03A9F4", "#9C27B0", "#FF5722"], // Multiple bar colors for variety
+            grid: {
+              borderColor: "#666", // Set grid line color to a soft gray
+              padding: {
+                top: 10,
+                right: 10,
+                bottom: 10,
+                left: 10,
+              },
+            },
+            tooltip: {
+              theme: "dark", // Dark theme for tooltips for better contrast
+            },
+          };
+
+          // Render the farm size chart
+          const farmSizeChart = new ApexCharts(
+            document.querySelector("#bar-chart"),
+            farmSizeOptions
+          );
+          farmSizeChart.render();
+
+          const cropRecommendationResponse = await fetch(
+            "/api/crop_recommendations"
+          );
+          const cropRecommendationData =
+            await cropRecommendationResponse.json();
+
+          // Extract data for the crop recommendation chart
+          const districts = cropRecommendationData.map((item) => item.district);
+          const totalCrops = cropRecommendationData.map(
+            (item) => item.total_crops
+          );
+
+          // Crop Recommendation Chart Configuration
+          const cropRecommendationOptions = {
+            chart: {
+              type: "bar",
+              background: "#212121", // Dark background for the chart
+              foreColor: "#ffffff", // White text on dark background
+            },
+            series: [
+              {
+                name: "Recommended Crops",
+                data: totalCrops,
+              },
+            ],
+            xaxis: {
+              categories: districts,
+              labels: {
+                style: {
+                  colors: "#ffffff", // White color for x-axis labels
+                  fontSize: "14px", // Increase font size for better readability
+                  fontWeight: "600", // Make the labels bolder
+                },
+              },
+            },
+            yaxis: {
+              labels: {
+                style: {
+                  colors: "#ffffff", // White color for y-axis labels
+                  fontSize: "14px", // Increase font size for better readability
+                  fontWeight: "600", // Make the labels bolder
+                },
+              },
+            },
+            title: {
+              align: "center",
+              style: {
+                color: "#FF5722", // Use a bright color for the title to make it stand out
+                fontSize: "24px", // Larger font size for the title
+                fontWeight: "700", // Bold the title for emphasis
+              },
+            },
+            plotOptions: {
+              bar: {
+                distributed: true, // Create separate colors for each bar
+                horizontal: false, // Keep bars vertical
+                columnWidth: "50%", // Adjust bar width
+              },
+            },
+            colors: ["#4CAF50", "#FF9800", "#03A9F4", "#9C27B0", "#FF5722"], // Multiple bar colors for variety
+            grid: {
+              borderColor: "#666", // Set grid line color to a soft gray
+              padding: {
+                top: 10,
+                right: 10,
+                bottom: 10,
+                left: 10,
+              },
+            },
+            tooltip: {
+              theme: "dark", // Dark theme for tooltips for better contrast
+            },
+          };
+
+          // Render the crop recommendation chart
+          const cropRecommendationChart = new ApexCharts(
+            document.querySelector("#area-chart"),
+            cropRecommendationOptions
+          );
+          cropRecommendationChart.render();
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      });
+
+    
+
+
+    </script>
+  </body>
+</html>
