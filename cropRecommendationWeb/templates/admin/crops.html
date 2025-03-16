@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crops - Admin Dashboard</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1d2634;
+            color: #f4f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            font-size: 36px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #2a3b47;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #3a4b61;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+        }
+
+        td {
+            background-color: #4f5d6a;
+            color: #f4f7fa;
+            font-size: 14px;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #3b4a59;
+        }
+
+        .action-column {
+            display: flex;
+            justify-content: center;
+        }
+
+        .action-column button {
+            margin-left: 10px;
+        }
+
+        .table-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            overflow-x: auto;
+        }
+
+        .back-btn {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: #45a049;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        @media (max-width: 768px) {
+            table {
+                font-size: 14px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Crops Recommendations</h1>
+    <button class="back-btn" onclick="window.location.href='/admin'">Back to Admin Page</button>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>District</th>
+                    <th>Month</th>
+                    <th>Nitrogen</th>
+                    <th>Phosphorus</th>
+                    <th>Potassium</th>
+                    <th>Temperature</th>
+                    <th>Humidity</th>
+                    <th>pH</th>
+                    <th>Rainfall</th>
+                    <th>Recommended Crop</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for crop in crops %}
+                <tr>
+                    <td>{{ crop.district }}</td>
+                    <td>{{ crop.month }}</td>
+                    <td>{{ crop.nitrogen }}</td>
+                    <td>{{ crop.phosphorus }}</td>
+                    <td>{{ crop.potassium }}</td>
+                    <td>{{ crop.temperature }}</td>
+                    <td>{{ crop.humidity }}</td>
+                    <td>{{ crop.pH }}</td>
+                    <td>{{ crop.rainfall }}</td>
+                    <td>{{ crop.selected_crop }}</td>
+                    <td class="action-column">
+                        <form method="POST" action="{{ url_for('delete_crop', crop_id=crop.id) }}">
+                            <button type="submit" class="delete-btn">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
