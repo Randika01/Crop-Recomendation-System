@@ -7,6 +7,9 @@ from tensorflow.keras.models import load_model # type: ignore
 import joblib
 from flask_migrate import Migrate
 from flask_cors import CORS
+from tensorflow.keras.losses import MeanSquaredError
+from sqlalchemy import func
+from datetime import datetime
 
 app = Flask(__name__, template_folder='.')
 CORS(app) 
@@ -51,7 +54,7 @@ with app.app_context():
     db.create_all()
 
 # Load models and scalers
-storage_model = load_model('single_lstm_storage_predictor.h5')  # LSTM model for tank storage prediction
+storage_model = load_model('single_lstm_storage_predictor.h5', custom_objects={"mse": MeanSquaredError()})  # LSTM model for tank storage prediction
 storage_scaler = joblib.load('storage_scaler.pkl')              # MinMaxScaler for Storage (%)
 range_encoder = joblib.load('range_encoder.pkl')                # OneHotEncoder for Range (District)
 
