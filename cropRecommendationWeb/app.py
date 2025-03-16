@@ -174,6 +174,20 @@ def predict_storage():
     range_selected = request.form['district']
     month_name = request.form['month']
 
+    # Define districts without tanks
+    no_tank_districts = ["Colombo", "Gampaha", "Jaffna", "Kaluthara", "Kegalle","Kilinochchi", "Matara","Matale","Vavuniya", "Mullativu", "Nuwara Eliya", "Ratnapura"]
+
+    if range_selected in no_tank_districts:
+        storage_statement = f"No tanks available in {range_selected}."
+        session['storage_statement'] = storage_statement
+        return render_template(
+            "crop_prediction.html",
+            storage_statement=storage_statement,
+            predicted_storage=None,
+            district=range_selected,
+            month=month_name,
+        )
+    
     # Map month names to numeric values
     month_mapping = {
         "January": 1, "February": 2, "March": 3, "April": 4,
